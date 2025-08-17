@@ -1,5 +1,8 @@
-// simple video capture - ver 0.2 (2025/08) | for m5.js (ver 1.9.0)
-
+// simple video capture 
+// 1280 × 720	Full HD (1080p)	1920 × 1080 | 16:9
+// ---------
+// ver 0.2.1 (2025/08) | for p5.js (ver 1.9.0)
+// ---------
 
 // ========== UNIVERSAL UI ELEMENTS (autocreate if missing) ==========
 function ensureUIElements() {
@@ -8,7 +11,7 @@ function ensureUIElements() {
     ui = document.createElement('div');
     ui.id = 'ui';
     ui.className = 'tt';
-    ui.style.margin = '10px';
+    ui.style.margin = '8px';
     document.body.appendChild(ui);
   }
 
@@ -17,9 +20,9 @@ function ensureUIElements() {
     const row = document.createElement('div');
     row.className = 'row';
     row.innerHTML = `
-      <b>Render FPS</b><br>
-      <label><input type="radio" name="renderfps" value="30"> 30</label>
-      <label><input type="radio" name="renderfps" value="60" checked> 60</label>
+      <b>Render FPS: </b>
+      <label><input type="radio" name="renderfps" value="30"> 30 </label>
+      <label><input type="radio" name="renderfps" value="60" checked> 60 </label>
     `;
     ui.appendChild(row);
   }
@@ -30,9 +33,9 @@ function ensureUIElements() {
     row.className = 'row';
     row.style.marginTop = '8px';
     row.innerHTML = `
-      <b>Speed</b><br>
-      <label><input type="radio" name="speed" value="1" checked> 1×</label>
-      <label><input type="radio" name="speed" value="2"> 2×</label>
+      <b>Speed: </b>
+      <label><input type="radio" name="speed" value="1" checked> 1x </label>
+      <label><input type="radio" name="speed" value="2"> 2x </label>
     `;
     ui.appendChild(row);
   }
@@ -127,7 +130,7 @@ document.querySelectorAll('input[name="renderfps"]').forEach(r => {
   r.addEventListener('change', setRenderFpsFromUI);
 });
 
-// Get selected playback speed (1× or 2×)
+// Get selected playback speed (1x or 2x)
 function getSpeedFactor(){
   return parseInt(document.querySelector('input[name="speed"]:checked')?.value || '1', 10);
 }
