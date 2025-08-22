@@ -1,0 +1,59 @@
+body {
+  background: #1e1e1e;      /* dark background */
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #e0e0e0;           /* light text */
+}
+
+.serial-wrapper {
+  width: 820px;
+  margin: 10px auto;
+  padding: 10px;
+  background: #2c2c2c;      /* darker card */
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #b00020;      /* red indicator for disconnected */
+  margin-right: 10px;
+  border: 1px solid #555;   /* subtle border for visibility */
+}
+
+.status-indicator.connected {
+  background: #00c853;      /* green indicator for connected */
+}
+
+/* buttons styling for dark mode */
+button {
+  background: #3a3a3a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #505050;
+}
+
+/* radio labels */
+label {
+  color: #e0e0e0;
+}
+
+input[type="radio"] {
+  accent-color: #00c853; /* make the selected dot green */
+}
