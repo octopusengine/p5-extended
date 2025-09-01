@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Box Info – Demo</title>
+  <script src="js/p5.min.js"></script>
+  <script src="js/box_calendar.js"></script>
+  <script>
+let bc;
+
+function setup() {
+  createCanvas(450, 300);
+  bc = new BoxCalendar(20, 20, 300, 220);
+  bc.strokeColor = color(0, 200, 0);
+
+}
+
+function draw() {
+  background(0);
+  bc.draw();
+}  </script>
+</head>
+<body>
+</body>
+</html>

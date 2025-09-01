@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Box Info – Demo</title>
+  <script src="js/p5.min.js"></script>
+  <script src="js/box_info.js"></script>
+  <script>
+    let bt, bv;
+
+    function setup() {
+      createCanvas(600, 390);
+      bt = new BoxTime(20, 20, 139, 39);
+      bv = new BoxP5Ver(20, 100, 139, 39);
+      bl = new BoxLabel(200, 20, 200, 39);
+
+      bl.text = "--- LABEL ---";
+      bl.textColor = color(0, 150, 0);
+      //bl.fillColor = color(255, 230, 200);
+
+      bt.textSize = 25;
+      //bt.fillColor = color(16, 16, 16);
+      bt.textColor = color(0,222, 0);
+      //bt.radius = 5;
+      //bt.strokeColor = color(0, 200, 0);
+      bt.strokeWeight = 2;
+
+      bv.textSize = 16;
+      //bv.fillColor = color(16, 16, 16);
+      //bv.strokeColor = color(0, 200, 0);
+
+      bv.textColor = color(100, 200, 100);
+
+
+
+    }
+
+//=============================
+    function draw() {
+      background(0);
+
+      bt.refresh(); // vždy aktualizuje čas
+      bt.draw();
+      bl.draw();
+      bv.draw();
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
