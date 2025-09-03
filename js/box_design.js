@@ -1,21 +1,22 @@
 // box_design.js
-// ver. 0.1 - 2025/08
+// ver. 0.2 - 2025/08
 
 
 // ========== DesignMatrix ==========
-// draws a grid (matrix) of rectangles inside mw x mh area
 
 class DesignMatrix {
   constructor(x0, y0, mw, mh, cols, rows) {
-    this.x0 = x0;     // top-left X
-    this.y0 = y0;     // top-left Y
-    this.mw = mw;     // total width
-    this.mh = mh;     // total height
-    this.cols = cols; // number of columns
-    this.rows = rows; // number of rows
+    this.x0 = x0;
+    this.y0 = y0;
+    this.mw = mw;
+    this.mh = mh;
+    this.cols = cols;
+    this.rows = rows;
+
+    this.colors = [];
+    this.initColors();
   }
 
-  // size of one cell
   get cellW() {
     return this.mw / this.cols;
   }
@@ -24,18 +25,31 @@ class DesignMatrix {
     return this.mh / this.rows;
   }
 
-  // draw with random green color per cell
-  drawRandomColor() {
+  initColors() {
+    this.colors = [];
+    for (let i = 0; i < this.cols; i++) {
+      this.colors[i] = [];
+      for (let j = 0; j < this.rows; j++) {
+        this.colors[i][j] = color(0, random(50, 255), 0);
+      }
+    }
+  }
+
+  updateColors() {
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        this.colors[i][j] = color(0, random(50, 255), 0);
+      }
+    }
+  }
+
+  draw() {
     noStroke();
     for (let i = 0; i < this.cols; i++) {
       for (let j = 0; j < this.rows; j++) {
         let gx = this.x0 + i * this.cellW;
         let gy = this.y0 + j * this.cellH;
-
-        // random green (0, 50..255, 0)
-        let g = random(50, 255);
-        fill(0, g, 0);
-
+        fill(this.colors[i][j]);
         rect(gx, gy, this.cellW, this.cellH);
       }
     }
@@ -43,6 +57,69 @@ class DesignMatrix {
 }
 
 
+// ========== DesignGo10 ==========
+// class for grid of random diagonal green lines
+class DesignGo10 {
+  constructor(mw, mh, cols, rows) {
+    this.mw = mw;
+    this.mh = mh;
+    this.cols = cols;
+    this.rows = rows;
+
+    this.x0 = 0;
+    this.y0 = 0;
+
+    this.running = true;   // animation toggle
+    this.grid = [];        // store line orientation (0/1)
+    this.thickness = 1;    // line thickness (modifiable later)
+
+    this.initGrid();
+  }
+
+  initGrid() {
+    this.grid = [];
+    for (let i = 0; i < this.cols; i++) {
+      this.grid[i] = [];
+      for (let j = 0; j < this.rows; j++) {
+        this.grid[i][j] = random() > 0.5 ? 1 : 0;
+      }
+    }
+  }
+
+  updateGrid() {
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        this.grid[i][j] = random() > 0.5 ? 1 : 0;
+      }
+    }
+  }
+
+  draw() {
+    let stepX = this.mw / this.cols;
+    let stepY = this.mh / this.rows;
+
+    stroke(0, 200, 0);
+    strokeWeight(this.thickness);
+
+    // pokud běží a jsme na každém 10. framu → změň vzor
+    if (this.running && frameCount % 10 === 0) {
+      this.updateGrid();
+    }
+
+    // vždy vykresli podle uložené grid
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        let x = this.x0 + i * stepX;
+        let y = this.y0 + j * stepY;
+        if (this.grid[i][j] === 1) {
+          line(x, y, x + stepX, y + stepY);
+        } else {
+          line(x + stepX, y, x, y + stepY);
+        }
+      }
+    }
+  }
+}
 
 
 // ========== Polyline ==========

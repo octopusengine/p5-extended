@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>DesignMatrix Controlled</title>
+  <script src="js/p5.min.js"></script>
+  <script src="js/box_design.js"></script>
+</head>
+<body>
+  <label>
+    <input type="checkbox" id="toggleRun" checked> Running
+  </label>
+
+  <script>
+    let matrix;
+    let running = true;
+    //let lastUpdate = 0;
+    //let interval = 1000; // 1s
+
+    function setup() {
+      createCanvas(600, 400);
+      matrix = new DesignMatrix(50, 50, 50, 200, 10, 30);
+
+      document.getElementById('toggleRun').addEventListener('change', (e) => {
+        running = e.target.checked;
+      });
+    }
+
+    function draw() {
+      background(220);
+
+      //if (running && millis() - lastUpdate > interval) {
+      //  matrix.updateColors();
+      //  lastUpdate = millis();
+      //}
+
+      if (running && frameCount % 8 === 0) { 
+         matrix.updateColors();
+      }
+
+      matrix.draw();
+    }
+  </script>
+</body>
+</html>
