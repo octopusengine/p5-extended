@@ -1,7 +1,54 @@
 // box_design.js
-// ver. 0.2 - 2025/08
+// ver. 0.3 - 2025/09
 
+// ========== DesignArc ==========
+class DesignArc {
+  constructor(r1, r2, alfa0, beta = 30, gama = 60, delta = 20, sw = 2) {
+    this.r1 = r1;
+    this.r2 = r2;
+    this.alfa0 = alfa0; // start angle
+    this.beta = beta;   // length of first arc
+    this.gama = gama;   // length of second arc
+    this.delta = delta; // length of closing arc
+    this.sw = sw;       // stroke weight
+    this.stroCol = color(0,128,0);
+  }
 
+  drawArc(cx, cy) {
+    strokeWeight(this.sw);
+    stroke(this.stroCol);
+    noFill();
+
+    // first r1: alfa0 -> alfa0+beta
+    arc(cx, cy, this.r1 * 2, this.r1 * 2,
+        radians(this.alfa0), radians(this.alfa0 + this.beta));
+
+    // second r2: alfa0+beta -> alfa0+beta+gama
+    arc(cx, cy, this.r2 * 2, this.r2 * 2,
+        radians(this.alfa0 + this.beta), radians(this.alfa0 + this.beta + this.gama));
+
+    // closing arc r1: alfa0+beta+gama -> alfa0+beta+gama+delta
+    arc(cx, cy, this.r1 * 2, this.r1 * 2,
+        radians(this.alfa0 + this.beta + this.gama),
+        radians(this.alfa0 + this.beta + this.gama + this.delta));
+
+    // connectors
+    this.drawConnector(cx, cy, this.r1, this.r2, this.alfa0 + this.beta);
+    this.drawConnector(cx, cy, this.r1, this.r2, this.alfa0 + this.beta + this.gama);
+  }
+
+  drawConnector(cx, cy, r1, r2, alfa) {
+    let x1 = cx + r1 * cos(radians(alfa));
+    let y1 = cy + r1 * sin(radians(alfa));
+
+    let x2 = cx + r2 * cos(radians(alfa));
+    let y2 = cy + r2 * sin(radians(alfa));
+
+    line(x1, y1, x2, y2);
+  }
+}
+
+// ========== Template ==========
 class Template {
   constructor() {
     this.xL13 = width / 3;
@@ -9,7 +56,7 @@ class Template {
     this.xC = width / 2;
     this.yC = height / 2;
     this.radius1 = 300;
-    this.radius2 = 150;
+    this.radius2 = 350;
     this.basCol = color(0,128,0); // basic color 
     this.basColdark = color(0,64,0);
     this.strokeW = 1;

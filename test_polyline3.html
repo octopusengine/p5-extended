@@ -12,6 +12,7 @@
 <script>
 let matrix;
 let lines = [];
+let arc0;
 
 function setup() {
   createCanvas(600, 350);
@@ -23,10 +24,11 @@ function setup() {
   lines.push(new DesignLine(-10, 300, 60, 140, 1, [0, 255, 0]));
   lines[2].setY0(155);
 
-
   drawPolylines();
   matrix = new DesignMatrix(t0.xL13, t0.yC, 200, 30, 30, 3); // 10x6 cells
   matrix.treshold = 50;
+
+  arc0 = new DesignArc(250,260, 90, 90, 90, 90, 1); 
 }
 
 function drawPolylines() {
@@ -38,6 +40,7 @@ function draw() {
   t0.draw();
   drawPolylines();
   matrix.draw();
+  arc0.drawArc(t0.xC, t0.yC);
 }
 
 </script>

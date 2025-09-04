@@ -12,6 +12,10 @@
 <script>
 let go;
 let checkbox;
+let arc1;
+let arc2
+let r1 = 230;
+let r2 = 210;
 
 function setup() {
   createCanvas(600, 400);
@@ -29,6 +33,10 @@ function setup() {
 
   checkbox = createCheckbox('Running', true);
   checkbox.changed(toggleRunning);
+
+  arc1 = new DesignArc(r1, r2, 0, 60, 60,60,3);
+  arc2 = new DesignArc(r1, r2, 180, 60, 60,60,3);
+
 }
 
 function draw() {
@@ -37,6 +45,9 @@ function draw() {
   t0.draw();
   go.draw();
   go2.draw();
+
+  arc1.drawArc(t0.xC, t0.yC);
+  arc2.drawArc(t0.xC, t0.yC);
 }
 
 function toggleRunning() {
