@@ -1,44 +1,60 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>DesignMatrix Controlled</title>
-  <script src="js/p5.min.js"></script>
-  <script src="js/box_design.js"></script>
+<meta charset="UTF-8">
+<title>DesignMatrix Controlled</title>
+<link rel="stylesheet" type="text/css" href="dark.css"> 
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
 </head>
+
 <body>
   <label>
     <input type="checkbox" id="toggleRun" checked> Running
   </label>
 
+  <br>
+  <label>
+    Threshold: <input type="range" id="thrSlider" min="0" max="253" value="100">
+  </label>
+  <span id="thrValue">100</span>
+
   <script>
     let matrix;
     let running = true;
-    //let lastUpdate = 0;
-    //let interval = 1000; // 1s
+    let thrSlider, thrValue;
+    let t0;
 
     function setup() {
       createCanvas(600, 400);
-      matrix = new DesignMatrix(50, 50, 50, 200, 10, 30);
+      matrix = new DesignMatrix(250, 100, 100, 200, 10, 30);
 
+      // checkbox
       document.getElementById('toggleRun').addEventListener('change', (e) => {
         running = e.target.checked;
       });
+
+      // slider + text
+      thrSlider = document.getElementById('thrSlider');
+      thrValue = document.getElementById('thrValue');
+      thrSlider.addEventListener('input', () => {
+        matrix.treshold = int(thrSlider.value);
+        thrValue.textContent = thrSlider.value;
+      });
+
+      t0 = new Template();
     }
 
     function draw() {
-      background(220);
-
-      //if (running && millis() - lastUpdate > interval) {
-      //  matrix.updateColors();
-      //  lastUpdate = millis();
-      //}
+      background(0);
 
       if (running && frameCount % 8 === 0) { 
          matrix.updateColors();
       }
 
       matrix.draw();
+      t0.drawGrid();
+      t0.draw();
     }
   </script>
 </body>

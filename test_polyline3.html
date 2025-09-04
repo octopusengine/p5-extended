@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
+<title>Polyline Control</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+</head>
+<body>
+
+<script>
+let matrix;
+let lines = [];
+
+function setup() {
+  createCanvas(600, 350);
+  t0 = new Template();
+
+  lines.push(new DesignLine(15, 100, 50, 450, 2, [0, 200, 0]));
+  lines[0].setY0(150);
+  lines.push(new DesignLine(-15, 80, 200, 320, 2, [0, 200, 0]));
+  lines.push(new DesignLine(-10, 300, 60, 140, 1, [0, 255, 0]));
+  lines[2].setY0(155);
+
+
+  drawPolylines();
+  matrix = new DesignMatrix(t0.xL13, t0.yC, 200, 30, 30, 3); // 10x6 cells
+  matrix.treshold = 50;
+}
+
+function drawPolylines() {
+  for (let l of lines) { l.draw(false); }
+}
+
+function draw() {
+  background(0);  
+  t0.draw();
+  drawPolylines();
+  matrix.draw();
+}
+
+</script>
+
+</body>
+</html>

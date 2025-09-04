@@ -2,6 +2,48 @@
 // ver. 0.2 - 2025/08
 
 
+class Template {
+  constructor() {
+    this.xL13 = width / 3;
+    this.xL23 = width - this.xL13;
+    this.xC = width / 2;
+    this.yC = height / 2;
+    this.radius1 = 300;
+    this.radius2 = 150;
+    this.basCol = color(0,128,0); // basic color 
+    this.basColdark = color(0,64,0);
+    this.strokeW = 1;
+    this.gridStep = 100;
+  }
+
+  draw() {
+    stroke(this.basCol);
+    strokeWeight(this.strokeW);
+
+    line(this.xL13, 0, this.xL13, height);
+    line(this.xC, 0, this.xC, height); 
+    line(this.xL23, 0, this.xL23, height);
+
+    noFill();
+    ellipse(this.xC, this.yC, this.radius1, this.radius1);
+    ellipse(this.xC, this.yC, this.radius2, this.radius2);
+  }
+
+  drawGrid() {
+     stroke(this.basColdark);
+     strokeWeight(this.strokeW); 
+  
+    for (let x = 0; x <= width; x += this.gridStep) {
+      line(x, 0, x, height);
+    }
+
+    for (let y = 0; y <= height; y += this.gridStep) {
+      line(0, y, width, y);
+    }
+  }
+}
+
+
 // ========== DesignMatrix ==========
 
 class DesignMatrix {
@@ -13,6 +55,7 @@ class DesignMatrix {
     this.cols = cols;
     this.rows = rows;
 
+    this.treshold = 100;
     this.colors = [];
     this.initColors();
   }
@@ -30,7 +73,10 @@ class DesignMatrix {
     for (let i = 0; i < this.cols; i++) {
       this.colors[i] = [];
       for (let j = 0; j < this.rows; j++) {
-        this.colors[i][j] = color(0, random(50, 255), 0);
+        let rndCol = random(0, 255);
+        if (rndCol < this.treshold) { rndCol = 0; }        
+        this.colors[i][j] = color(0, rndCol, 0);
+
       }
     }
   }
@@ -38,7 +84,9 @@ class DesignMatrix {
   updateColors() {
     for (let i = 0; i < this.cols; i++) {
       for (let j = 0; j < this.rows; j++) {
-        this.colors[i][j] = color(0, random(50, 255), 0);
+        let rndCol = random(0, 255);
+        if (rndCol < this.treshold) { rndCol = 0; }        
+        this.colors[i][j] = color(0, rndCol, 0);
       }
     }
   }

@@ -1,48 +1,48 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>DesignMatrix Controlled</title>
-  <script src="js/p5.min.js"></script>
-  <script src="js/box_design.js"></script>
+<meta charset="UTF-8">
+<title>DesignMatrix Controlled</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
 </head>
 <body>
 
-  <script>
-  let go;
+<script>
+let go;
 let checkbox;
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(600, 400);
+  t0 = new Template();
   go = new DesignGo10(100, 200, 10, 20);
   go.thickness = 2;
-  go.x0 = 100;
+  go.x0 = 200;
   go.y0 = 100;  
  
   go2 = new DesignGo10(100, 200, 10, 20);
   go2.thickness = 1;
-  go2.x0 = 200;
+  go2.x0 = 300;
   go2.y0 = 100;
   go2.running = false;  
 
-
-  // vytvoříme checkbox
   checkbox = createCheckbox('Running', true);
   checkbox.changed(toggleRunning);
 }
 
 function draw() {
   background(0);
+  t0.drawGrid();
+  t0.draw();
   go.draw();
   go2.draw();
-
 }
 
-// funkce, která se volá při změně checkboxu
 function toggleRunning() {
   go.running = this.checked();
 }
+</script>
 
-  </script>
 </body>
 </html>
