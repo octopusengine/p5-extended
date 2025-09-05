@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Pattern Lock Test</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/pattern_lock.js"></script>
+</head>
+<body>
+
+<p id="attempt">Your pattern: </p>
+
+<script>
+let lock;
+
+function setup() {
+  createCanvas(350, 300);
+  lock = new PatternLock(100, 50, 21);
+  lock.setup();
+
+  lock.pattern = [1,2,3,6,8];
+  lock.lineColor = "#00FF00";
+  lock.pointColor = "#009600";
+  lock.selectedColor = "#00FF00";
+  lock.bgColor = "#000000";
+  lock.showNumbers = true;
+
+}
+
+function draw() {
+  lock.draw();
+}
+
+function mousePressed() {
+  lock.mousePressed();
+}
+
+function mouseDragged() {
+  lock.mouseDragged();
+}
+
+function mouseReleased() {
+  lock.mouseReleased();
+}
+</script>
+</body>
+</html>
