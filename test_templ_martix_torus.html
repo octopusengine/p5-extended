@@ -7,6 +7,8 @@
 <script src="js/p5.min.js"></script>
 <script src="js/box_design.js"></script>
 <script src="js/box_torus.js"></script>
+<script src="js/box_gui.js"></script>
+
 </head>
 
 <body>
@@ -15,70 +17,82 @@
   </label>
 
   <br>
-  <label>
-    Threshold: <input type="range" id="thrSlider" min="0" max="253" value="100">
-  </label>
-  <span id="thrValue">100</span>
-
   <script>
-    let matrix;
-    let running = true;
-    let thrSlider, thrValue;
-    let t0;
+ let matrix;
+let running = true;
+let t0, t1;
+let freqSlider; // Canvas slider for t1.freq2
 
-    //--------------------------------------------------
-    function setup() {
-      createCanvas(600, 400);
-    t0 = new Template();
+function setup() {
+  createCanvas(600, 400);
+  t0 = new Template();
 
-       //matrix = new DesignMatrix(250, 100, 100, 200, 10, 30); //center
-      matrix = new DesignMatrix(50, 100, 50, 200, 10, 30); // left
+  // matrix instance
+  matrix = new DesignMatrix(50, 100, 50, 200, 10, 30); // left
 
-      // torus
-  //t1 = new BoxTorusLines(t0.xC, t0.yC);
+  // torus points
   t1 = new BoxTorusPoints(t0.xC, t0.yC);
-  
-  t1.speedX = 0.1; //0.05
-
+  t1.speedX = 0.1;
   t1.radius0 = 50;
   t1.radius1 = 30;
-  t1.freq = 5; //10
-  t1.freq2 = 12;
+  t1.freq = 5;
+  t1.freq2 = 5; // default value
+
+  // running checkbox
+  document.getElementById('toggleRun').addEventListener('change', (e) => {
+    running = e.target.checked;
+  });
+
+  // --- Canvas slider for t1.freq2 ---
+  // x, y, width, height, min, default, max
+  freqSlider = new BoxSlider(t0.xC-150, 350, 300, 20, 1, 100, 250);
+}
+
+function draw() {
+  background(0);
+
+  // update slider
+  freqSlider.update();
+
+  // apply slider value directly to t1.freq2
+  t1.freq2 = int(freqSlider.value)/300;
+  matrix.treshold = int(freqSlider.value);
 
 
-      // checkbox
-      document.getElementById('toggleRun').addEventListener('change', (e) => {
-        running = e.target.checked;
-      });
+  // draw slider
+  freqSlider.draw();
 
-      // slider + text
-      thrSlider = document.getElementById('thrSlider');
-      thrValue = document.getElementById('thrValue');
-      thrSlider.addEventListener('input', () => {
-        matrix.treshold = int(thrSlider.value);
-        t1.freq2 = int(thrSlider.value/10);
+  // --- optional text display ---
+  noStroke();
+  fill(0, 255, 0);
+  textAlign(LEFT, TOP);
+  text("Torus freq2: " + int(freqSlider.value), 420, 370);
 
-        thrValue.textContent = thrSlider.value;
-      });
+  // update matrix if running
+  if (running && frameCount % 8 === 0) {
+    matrix.updateColors();
+  }
 
-      
-    }
-//==========================================
-    function draw() {
-      background(0);
+  // draw matrix and template
+  matrix.draw();
+  t0.drawGrid();
+  t0.draw();
 
-      if (running && frameCount % 8 === 0) { 
-         matrix.updateColors();
-      }
+  // update and draw torus
+  t1.update();
+  t1.draw();
+}
 
-      matrix.draw();
-      t0.drawGrid();
-      t0.draw();
+function mousePressed() {
+  freqSlider.pressed();
+}
 
-      t1.update();
-      t1.draw();
+function mouseReleased() {
+  freqSlider.released();
+}
 
-    }
+
+
   </script>
 </body>
 </html>
