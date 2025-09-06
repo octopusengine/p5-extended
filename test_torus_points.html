@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/box_torus.js"></script>
+</head>
+<body>
+
+<script>
+let torus1, torus2;
+
+function setup() {
+  createCanvas(700, 500);
+  colorMode(RGB, 255);
+  background(20);
+
+  t1 = new BoxTorusPoints(width/3, height/2, 150);
+  t1.radius0 = 50;
+  t1.radius1 = 30;
+  t1.sigmaDensity = 39;
+  t1.phiDensity = 21;
+
+  //torus2 = new TorusPoints(2*width/3, height/2, 100);
+}
+
+function draw() {
+  background(20);
+
+  t1.update();
+  t1.draw();
+
+  //torus2.update();
+  //torus2.draw();
+}
+</script>
+
+</body>
+</html>

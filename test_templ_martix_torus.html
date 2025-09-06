@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>DesignMatrix Controlled</title>
+<link rel="stylesheet" type="text/css" href="dark.css"> 
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
+<script src="js/box_torus.js"></script>
+</head>
+
+<body>
+  <label>
+    <input type="checkbox" id="toggleRun" checked> Running
+  </label>
+
+  <br>
+  <label>
+    Threshold: <input type="range" id="thrSlider" min="0" max="253" value="100">
+  </label>
+  <span id="thrValue">100</span>
+
+  <script>
+    let matrix;
+    let running = true;
+    let thrSlider, thrValue;
+    let t0;
+
+    //--------------------------------------------------
+    function setup() {
+      createCanvas(600, 400);
+    t0 = new Template();
+
+       //matrix = new DesignMatrix(250, 100, 100, 200, 10, 30); //center
+      matrix = new DesignMatrix(50, 100, 50, 200, 10, 30); // left
+
+      // torus
+  //t1 = new BoxTorusLines(t0.xC, t0.yC);
+  t1 = new BoxTorusPoints(t0.xC, t0.yC);
+  
+  t1.speedX = 0.1; //0.05
+
+  t1.radius0 = 50;
+  t1.radius1 = 30;
+  t1.freq = 5; //10
+  t1.freq2 = 12;
+
+
+      // checkbox
+      document.getElementById('toggleRun').addEventListener('change', (e) => {
+        running = e.target.checked;
+      });
+
+      // slider + text
+      thrSlider = document.getElementById('thrSlider');
+      thrValue = document.getElementById('thrValue');
+      thrSlider.addEventListener('input', () => {
+        matrix.treshold = int(thrSlider.value);
+        t1.freq2 = int(thrSlider.value/10);
+
+        thrValue.textContent = thrSlider.value;
+      });
+
+      
+    }
+//==========================================
+    function draw() {
+      background(0);
+
+      if (running && frameCount % 8 === 0) { 
+         matrix.updateColors();
+      }
+
+      matrix.draw();
+      t0.drawGrid();
+      t0.draw();
+
+      t1.update();
+      t1.draw();
+
+    }
+  </script>
+</body>
+</html>

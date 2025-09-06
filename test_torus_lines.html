@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/box_torus.js"></script>
+</head>
+<body>
+
+<script>
+let t1, t2;
+
+function setup() {
+  createCanvas(600, 500);
+  angleMode(RADIANS);
+
+  // dvě instance
+  t1 = new BoxTorusLines(150, 150);
+  t1.speedX= 0.1; //0.05
+
+  t1.radius0 = 50;
+  t1.radius1 = 30;
+  t1.freq = 5; //10
+  t1.freq2 = 12;
+
+  //t2 = new BoxTorusPoints(450, 250);
+  //t2.rotationSpeed = -0.015;
+}
+
+function draw() {
+  background(20); // tmavé pozadí
+
+  t1.update();
+  t1.draw();
+
+  //t2.update();
+  //t2.draw();
+}
+
+
+</script>
+
+</body>
+</html>
