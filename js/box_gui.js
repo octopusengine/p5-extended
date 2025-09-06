@@ -1,6 +1,119 @@
 // box_gui.js | simple GUI library for p5.js
 // v0.1 | 2025/09
 
+class CheckBox {
+    constructor(x, y, size, initialState = false) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.checked = initialState; // true nebo false
+
+        this.outerCornerRadius = 5; // Zaoblení rohů vnějšího rámečku
+        this.strokeWeight = 2;
+        this.strokeColor = color(0, 255, 0); // Zelená linka
+
+        this.padding = 5; // Mezera od okraje
+
+        // Vypočítáme velikost a pozici vnitřního čtverce
+        this.innerSize = this.size - (2 * this.padding);
+        this.innerX = this.x + this.padding;
+        this.innerY = this.y + this.padding;
+
+        this.innerCornerRadius = Math.max(0, this.outerCornerRadius - Math.min(this.padding, this.outerCornerRadius));
+
+
+        this.fillColorChecked = color(0, 200, 0); // Jasná zelená pro checked
+        this.fillColorUnchecked = color(0, 80, 0);  // Tmavá zelená pro unchecked
+
+        // --- Nové vlastnosti pro textový popisek ---
+        this.label = "";
+        this.labelColor = color(0,200,0); 
+        this.labelSize = 16;          // Velikost textu
+        this.labelOffsetX = this.size + 10; // Relativní X pozice od levého horního rohu checkboxu
+        this.labelOffsetY = this.size / 2 + this.labelSize / 3; // Relativní Y pozice od levého horního rohu checkboxu (pro vertikální vycentrování s textem)
+    }
+
+    // Nastaví text popisku
+    textLabel(text, offsetX = this.size + 10, offsetY = null, color = null, size = null) {
+        this.label = text;
+        this.labelOffsetX = offsetX;
+        this.labelOffsetY = (offsetY !== null) ? offsetY : (this.size / 2 + this.labelSize / 3);
+        this.labelColor = (color !== null) ? color : this.labelColor;
+        this.labelSize = (size !== null) ? size : this.labelSize;
+        return this; // Pro chainování metod
+    }
+
+    // Kontroluje, zda se myš nachází nad checkboxem (nebo nad popiskem pro jednodušší interakci)
+    isHovered() {
+        if (typeof mouseX === 'undefined' || typeof mouseY === 'undefined') {
+            return false;
+        }
+
+        // Oblast checkboxu
+        const checkArea = mouseX > this.x && mouseX < this.x + this.size &&
+                          mouseY > this.y && mouseY < this.y + this.size;
+
+        // Oblast popisku
+        // Zde je to zjednodušené, pokud potřebuješ přesnější ohraničení textu,
+        // musel bys použít textWidth() a textAscent()/textDescent().
+        // Prozatím předpokládejme obdélník kolem textu.
+        const labelArea = mouseX > this.x + this.labelOffsetX &&
+                          mouseX < this.x + this.labelOffsetX + textWidth(this.label) &&
+                          mouseY > this.y + this.labelOffsetY - this.labelSize && // Odhad výšky textu
+                          mouseY < this.y + this.labelOffsetY;
+
+        return checkArea || labelArea;
+    }
+
+    // Zpracuje kliknutí myši
+    pressed() {
+        if (this.isHovered()) {
+            this.checked = !this.checked; // Přepne stav
+            return true; // Označuje, že byl checkbox kliknut
+        }
+        return false;
+    }
+
+    // Vykreslí checkbox
+    draw() {
+        push();
+        colorMode(RGB);
+
+        // Kreslíme vnější rámeček
+        stroke(this.strokeColor);
+        strokeWeight(this.strokeWeight);
+        noFill(); // Rámeček bez výplně
+        rect(this.x, this.y, this.size, this.size, this.outerCornerRadius);
+
+        // Kreslíme vnitřní výplň
+        noStroke(); // Vnitřní výplň bez linky
+        if (this.checked) {
+            fill(this.fillColorChecked);
+        } else {
+            fill(this.fillColorUnchecked);
+        }
+        // Kontrola, aby se vnitřní čtverec vykreslil pouze, pokud má platnou velikost
+        if (this.innerSize > 0) {
+            rect(this.innerX, this.innerY, this.innerSize, this.innerSize, this.innerCornerRadius);
+        }
+
+
+        // --- Vykreslení textového popisku ---
+        if (this.label !== "") {
+            fill(this.labelColor);
+            noStroke();
+            textSize(this.labelSize);
+            textAlign(LEFT, BASELINE); // Text zarovnáme k levému okraji a základní linii
+            text(this.label, this.x + this.labelOffsetX, this.y + this.labelOffsetY);
+        }
+
+
+        pop();
+    }
+}
+
+
+
 class BoxSlider {
   static active = null;
 

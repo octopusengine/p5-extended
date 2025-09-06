@@ -12,87 +12,106 @@
 </head>
 
 <body>
-  <label>
-    <input type="checkbox" id="toggleRun" checked> Running
-  </label>
-
+  <!-- Důležité: Přidání tohoto divu, aby select('#statusDisplay') fungoval -->
+  <div id="statusDisplay" style="color: white; margin-bottom: 10px;"></div> 
   <br>
   <script>
- let matrix;
-let running = true;
-let t0, t1;
-let freqSlider; // Canvas slider for t1.freq2
+        // Předpokládáme, že tyto třídy jsou správně načteny z tvých JS souborů.
+        // Fiktivní třídy zde už nebudou, protože máš skutečné.
 
-function setup() {
-  createCanvas(600, 400);
-  t0 = new Template();
+        let matrix;
+        let running = true; // Bude aktualizováno z checkboxu
+        let t0, t1;
+        let freqSlider;
+        let toggleRunCheckbox; // Naše nová instance CheckBox
 
-  // matrix instance
-  matrix = new DesignMatrix(50, 100, 50, 200, 10, 30); // left
+        function setup() {
+            createCanvas(600, 400);
 
-  // torus points
-  t1 = new BoxTorusPoints(t0.xC, t0.yC);
-  t1.speedX = 0.1;
-  t1.radius0 = 50;
-  t1.radius1 = 30;
-  t1.freq = 5;
-  t1.freq2 = 5; // default value
+            t0 = new Template();
 
-  // running checkbox
-  document.getElementById('toggleRun').addEventListener('change', (e) => {
-    running = e.target.checked;
-  });
+            // matrix instance
+            matrix = new DesignMatrix(50, 100, 50, 200, 10, 30); // left
 
-  // --- Canvas slider for t1.freq2 ---
-  // x, y, width, height, min, default, max
-  freqSlider = new BoxSlider(t0.xC-150, 350, 300, 20, 1, 100, 250);
-}
+            // torus points
+            t1 = new BoxTorusPoints(t0.xC, t0.yC);
+            t1.speedX = 0.1;
+            t1.radius0 = 50;
+            t1.radius1 = 30;
+            t1.freq = 5;
+            t1.freq2 = 5; // default value
 
-function draw() {
-  background(0);
+            // --- Naše nová instance CheckBox pro ovládání 'running' ---
+            // x, y, size, initialState
+            toggleRunCheckbox = new CheckBox(t0.xC + 150, 30, 25, true); // Pozice vpravo nahoře
+            toggleRunCheckbox.textLabel("Running"); // Přidáme popisek
+            // toggleRunCheckbox.labelColor = color(255); // Pokud chceš jinou barvu textu, zde to můžeš nastavit
 
-  // update slider
-  freqSlider.update();
+            // --- Canvas slider for t1.freq2 ---
+            // x, y, width, height, min, default, max
+            freqSlider = new BoxSlider(t0.xC - 150, 350, 300, 20, 1, 100, 250);
+        }
 
-  // apply slider value directly to t1.freq2
-  t1.freq2 = int(freqSlider.value)/300;
-  matrix.treshold = int(freqSlider.value);
+        function draw() {
+            background(0);
 
+            // Aktualizujeme stav 'running' z našeho CheckBoxu
+            running = toggleRunCheckbox.checked;
 
-  // draw slider
-  freqSlider.draw();
+            // update slider
+            freqSlider.update();
 
-  // --- optional text display ---
-  noStroke();
-  fill(0, 255, 0);
-  textAlign(LEFT, TOP);
-  text("Torus freq2: " + int(freqSlider.value), 420, 370);
-
-  // update matrix if running
-  if (running && frameCount % 8 === 0) {
-    matrix.updateColors();
-  }
-
-  // draw matrix and template
-  matrix.draw();
-  t0.drawGrid();
-  t0.draw();
-
-  // update and draw torus
-  t1.update();
-  t1.draw();
-}
-
-function mousePressed() {
-  freqSlider.pressed();
-}
-
-function mouseReleased() {
-  freqSlider.released();
-}
+            // apply slider value directly to t1.freq2
+            t1.freq2 = int(freqSlider.value) / 300;
+            matrix.treshold = int(freqSlider.value);
 
 
+            // draw slider
+            freqSlider.draw();
 
+            // draw our new CheckBox
+            toggleRunCheckbox.draw();
+
+            // --- optional text display (pro slider) ---
+            noStroke();
+            fill(0, 255, 0); // Zelená barva pro text slideru
+            textAlign(LEFT, TOP);
+            text("Torus freq2: " + int(freqSlider.value), 420, 370);
+
+            // update matrix if running
+            if (running && frameCount % 8 === 0) {
+                matrix.updateColors();
+            }
+
+            // draw matrix and template
+            matrix.draw();
+            t0.drawGrid();
+            t0.draw();
+
+            // update and draw torus
+            t1.update();
+            t1.draw();
+
+            // Aktualizace stavu v HTML divu (volitelné)
+            // Ujistíme se, že div existuje před jeho použitím
+            let statusDiv = select('#statusDisplay');
+            if (statusDiv) {
+                statusDiv.html(`Running: <strong>${running}</strong>`);
+            }
+        }
+
+        function mousePressed() {
+            // Zpracujeme stisknutí myši pro slider
+            freqSlider.pressed();
+
+            // Zpracujeme stisknutí myši pro náš CheckBox
+            toggleRunCheckbox.pressed();
+        }
+
+        function mouseReleased() {
+            // Zpracujeme uvolnění myši pro slider
+            freqSlider.released();
+        }
   </script>
 </body>
 </html>
