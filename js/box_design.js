@@ -48,48 +48,6 @@ class DesignArc {
   }
 }
 
-// ========== Template ==========
-class Template {
-  constructor() {
-    this.xL13 = width / 3;
-    this.xL23 = width - this.xL13;
-    this.xC = width / 2;
-    this.yC = height / 2;
-    this.radius1 = 300;
-    this.radius2 = 350;
-    this.basCol = color(0,128,0); // basic color 
-    this.basColdark = color(0,64,0);
-    this.strokeW = 1;
-    this.gridStep = 100;
-  }
-
-  draw() {
-    stroke(this.basCol);
-    strokeWeight(this.strokeW);
-
-    line(this.xL13, 0, this.xL13, height);
-    line(this.xC, 0, this.xC, height); 
-    line(this.xL23, 0, this.xL23, height);
-
-    noFill();
-    ellipse(this.xC, this.yC, this.radius1, this.radius1);
-    ellipse(this.xC, this.yC, this.radius2, this.radius2);
-  }
-
-  drawGrid() {
-     stroke(this.basColdark);
-     strokeWeight(this.strokeW); 
-  
-    for (let x = 0; x <= width; x += this.gridStep) {
-      line(x, 0, x, height);
-    }
-
-    for (let y = 0; y <= height; y += this.gridStep) {
-      line(0, y, width, y);
-    }
-  }
-}
-
 
 // ========== DesignMatrix ==========
 
@@ -281,3 +239,194 @@ class DesignLine {
     this.polyline.draw(doFill);
   }
 }
+
+// ========== BoxPerlin ==========
+class BoxPerlin {
+  constructor(x, y, w, h, seed, z = 0) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.seed = seed;
+    this.z = z;
+
+    this.rez = 0.05;
+    this.pixelSize = 3;
+    this.palette = [color(0, 0, 100)];
+    this.showBorder = true;
+    this.levels = 8; // nová property: kolik "stupňů" má mít noise
+  }
+
+  draw() {
+    noiseSeed(this.seed);
+
+    for (let ix = 0; ix < this.w; ix += this.pixelSize) {
+      for (let iy = 0; iy < this.h; iy += this.pixelSize) {
+        let n = noise((this.x + ix) * this.rez,
+                      (this.y + iy) * this.rez,
+                      this.z);
+
+        // škálování podle počtu levels
+        let idx = floor(n * this.levels);
+        idx = constrain(idx, 0, this.levels - 1);
+
+        // mapování na paletu
+        let palIdx = floor(map(idx, 0, this.levels - 1, 0, this.palette.length - 1));
+        fill(this.palette[palIdx]);
+
+        rect(this.x + ix, this.y + iy, this.pixelSize, this.pixelSize);
+      }
+    }
+
+    if (this.showBorder) {
+      noFill();
+      stroke(0, 0, 100);
+      rect(this.x, this.y, this.w, this.h);
+      noStroke();
+    }
+  }
+}
+
+
+
+//=======================
+class OscSphere {
+  constructor(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.running = true;
+
+    this.num = 20;
+    this.step = 20;
+    this.strokeCol = color(255);
+
+    this.waves = [];
+    for (let i = 0; i < this.num; i++) {
+      this.waves[i] = new WaveSph(i * this.step, this.r);
+    }
+  }
+
+  display() {
+    push();
+    translate(this.x, this.y);
+    stroke(this.strokeCol);
+    noFill();
+    for (let w of this.waves) {
+      w.display();
+      if (this.running) w.move();  // <-- running
+    }
+    pop();
+  }
+}
+
+
+//--------------------------------------------------
+// Wave Sphere class 
+//--------------------------------------------------
+class WaveSph {
+  constructor(shift, r) {
+    this.shift = shift;
+    this.angle = 0;
+    this.movement = 0;
+    this.period = 1;
+    this.r = r;
+  }
+
+  display() {
+    for (let i = 0; i <= 360; i++) {
+      let x = map(i, 0, 360, -this.r, this.r);
+
+      // bezpečné sqrt
+      let tmp = 1 - (x / this.r) * (x / this.r);
+      tmp = max(0, tmp);
+      let amplitude = this.r * sqrt(tmp);
+
+      let y = amplitude * sin((i + this.angle + this.shift * this.movement) * this.period);
+      point(x, y);
+    }
+  }
+
+  move() {
+    this.angle += 1;
+    this.movement = cos(this.angle);
+  }
+}
+
+
+//============================ t e m p l a t e s ====================================
+
+// ========== Template ==========
+class Template {
+  constructor() {
+    this.xL13 = width / 3;
+    this.xL23 = width - this.xL13;
+    this.xC = width / 2;
+    this.yC = height / 2;
+    this.radius1 = 300;
+    this.radius2 = 350;
+    this.basCol = color(0,127,0); // basic color 
+    this.basColdark = color(0,63,0);
+    this.strokeW = 1;
+    this.gridStep = 100;
+    this.x0 = 0;
+    this.y0 = 0;
+    this.w = width;
+    this.h = height;
+    this.R = 600; 
+
+    // "global" for extern btn
+    this.btnW = 120;
+    this.btnH = 39; 
+    this.btnD = 50;
+    this.btnX0 = 25;
+  }
+
+  draw() {
+    stroke(this.basCol);
+    strokeWeight(this.strokeW);
+
+    line(this.xL13, 0, this.xL13, height);
+    line(this.xC, 0, this.xC, height); 
+    line(this.xL23, 0, this.xL23, height);
+
+    noFill();
+    ellipse(this.xC, this.yC, this.radius1, this.radius1);
+    ellipse(this.xC, this.yC, this.radius2, this.radius2);
+  }
+
+  // simple center MASK
+  drawCircle() {
+    fill(0);
+    noStroke();
+    circle(this.xC, this.yC, this.R);
+  }
+
+  drawGrid() {
+     stroke(this.basColdark);
+     strokeWeight(this.strokeW); 
+  
+    for (let x = 0; x <= width; x += this.gridStep) {
+      line(x, 0, x, height);
+    }
+
+    for (let y = 0; y <= height; y += this.gridStep) {
+      line(0, y, width, y);
+    }
+  }
+
+ drawGridPoints() {
+  stroke(this.basCol);
+  strokeWeight(this.strokeW);
+
+  for (let x = 0; x <= this.w ; x += this.gridStep) {
+    for (let y = 0; y <= this.h ; y += this.gridStep) {
+      point(this.x0 + x, this.y0 + y);
+    }
+  }
+}
+}
+
+
+
+

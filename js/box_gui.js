@@ -1,5 +1,69 @@
 // box_gui.js | simple GUI library for p5.js
-// v0.1 | 2025/09
+// v0.2 | 2025/09
+
+class ButtonBox {
+  constructor(x, y, w, h, label) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.label = label;
+
+    this.cornerRadius = 6;
+    this.strokeWeight = 2;
+    this.strokeColor = color(0, 255, 0);
+    this.fillColor = color(0, 50, 0);
+    this.fillColorHover = color(0, 80, 0);
+
+    this.textColor = color(0, 255, 0);
+    this.textSize = 16;
+  }
+
+  // zjištění, zda je myš nad tlačítkem
+  isHovered() {
+    return (
+      mouseX > this.x &&
+      mouseX < this.x + this.w &&
+      mouseY > this.y &&
+      mouseY < this.y + this.h
+    );
+  }
+
+  // zpracování kliknutí
+  pressed() {
+    if (this.isHovered()) {
+      // akce při kliknutí
+      window.location.href = "index.html";
+      return true;
+    }
+    return false;
+  }
+
+  // vykreslení tlačítka
+  draw() {
+    push();
+    colorMode(RGB);
+
+    stroke(this.strokeColor);
+    strokeWeight(this.strokeWeight);
+    if (this.isHovered()) {
+      fill(this.fillColorHover);
+    } else {
+      fill(this.fillColor);
+    }
+    rect(this.x, this.y, this.w, this.h, this.cornerRadius);
+
+    noStroke();
+    fill(this.textColor);
+    textSize(this.textSize);
+    textAlign(CENTER, CENTER);
+    text(this.label, this.x + this.w / 2, this.y + this.h / 2);
+
+    pop();
+  }
+}
+
+
 
 class CheckBox {
     constructor(x, y, size, initialState = false) {
@@ -114,14 +178,17 @@ class CheckBox {
 
 
 
+
+// Třída BoxSlider - UPRAVENÁ VERZE
 class BoxSlider {
   static active = null;
 
-  constructor(x, y, w, h, a, b, c) {
+  constructor(x, y, w, h, a, b, c, vertical=false) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.vertical = vertical; // přepínač: false = horizontální, true = vertikální
 
     this.minVal = a;
     this.maxVal = c;
@@ -130,35 +197,89 @@ class BoxSlider {
     this.dragging = false;
     this.lineCol1 = color(0, 255, 0);
     this.lineCol2 = color(0, 100, 0);
+
+    // touchAreaSize by měl brát v úvahu, zda je slider vertikální nebo horizontální
+    this.touchAreaSize = Math.max(30, (this.vertical ? this.w : this.h) * 1.5);
+    this.isHovering = false;
   }
 
-  valueToX(v) {
+  // Získání souřadnic ukazatele (dotyk nebo myš)
+  getPointer() {
+    // Používáme touches[0] pro první dotyk, jinak mouseX/mouseY
+    if (touches.length > 0) {
+      return { x: touches[0].x, y: touches[0].y };
+    } else {
+      return { x: mouseX, y: mouseY };
+    }
+  }
+
+  valueToPos(v) {
     let ratio = (v - this.minVal) / (this.maxVal - this.minVal);
-    return this.x + ratio * this.w;
+    if (this.vertical) {
+      return this.y + this.h - ratio * this.h; // invert Y pro vertikální slider
+    } else {
+      return this.x + ratio * this.w;
+    }
   }
 
-  xToValue(px) {
-    let ratio = (px - this.x) / this.w;
-    return constrain(this.minVal + ratio * (this.maxVal - this.minVal), this.minVal, this.maxVal);
+  posToValue(px, py) {
+    if (this.vertical) {
+      // Důležité: 'this.y + this.h - py' pro vertikální slider
+      let ratio = (this.y + this.h - py) / this.h;
+      return constrain(this.minVal + ratio * (this.maxVal - this.minVal), this.minVal, this.maxVal);
+    } else {
+      let ratio = (px - this.x) / this.w;
+      return constrain(this.minVal + ratio * (this.maxVal - this.minVal), this.minVal, this.maxVal);
+    }
+  }
+
+  isPointerOver() {
+    let p = this.getPointer();
+    // Pokud p.x nebo p.y nejsou validní čísla (např. když není aktivní dotyk/myš), vrať false
+    if (isNaN(p.x) || isNaN(p.y)) return false;
+
+    if (this.vertical) {
+      let knobY = this.valueToPos(this.value);
+      return (
+        p.x > this.x - this.touchAreaSize/2 &&
+        p.x < this.x + this.w + this.touchAreaSize/2 && // Šířka slideru je tentokrát this.w
+        p.y > knobY - this.touchAreaSize/2 &&
+        p.y < knobY + this.touchAreaSize/2
+      );
+    } else {
+      let knobX = this.valueToPos(this.value);
+      return (
+        p.x > knobX - this.touchAreaSize/2 &&
+        p.x < knobX + this.touchAreaSize/2 &&
+        p.y > this.y - this.touchAreaSize/2 &&
+        p.y < this.y + this.h + this.touchAreaSize/2 // Výška slideru je tentokrát this.h
+      );
+    }
   }
 
   update() {
+    this.isHovering = this.isPointerOver();
     if (this.dragging && BoxSlider.active === this) {
-      this.value = this.xToValue(mouseX);
+      let p = this.getPointer();
+      // Ujistíme se, že pointer má validní souřadnice před použitím
+      if (!isNaN(p.x) && !isNaN(p.y)) {
+         this.value = this.posToValue(p.x, p.y);
+      }
     }
   }
 
   pressed() {
-    let knobX = this.valueToX(this.value);
-    if (
-      mouseX > knobX - this.h / 2 &&
-      mouseX < knobX + this.h / 2 &&
-      mouseY > this.y - this.h / 2 &&
-      mouseY < this.y + this.h / 2
-    ) {
+    if (this.isPointerOver()) {
       this.dragging = true;
-      BoxSlider.active = this;  // This slider owns the mouse
+      BoxSlider.active = this;
+      let p = this.getPointer();
+      // Ujistíme se, že pointer má validní souřadnice před použitím
+      if (!isNaN(p.x) && !isNaN(p.y)) {
+          this.value = this.posToValue(p.x, p.y);
+      }
+      return true;
     }
+    return false;
   }
 
   released() {
@@ -169,29 +290,171 @@ class BoxSlider {
   }
 
   draw() {
-    push();               // Start local drawing
-    colorMode(RGB);       // Switch to RGB so stroke/fill works
-    stroke(this.lineCol1);
-    strokeWeight(2);
-    line(this.x, this.y, this.x + this.w, this.y);
+    push();
+    colorMode(RGB);
 
-    // Ticks
-    stroke(this.lineCol2);
-    let step = (this.maxVal <= 20) ? 1 : 10;
-    for (let v = this.minVal; v <= this.maxVal; v += step) {
-      let tx = this.valueToX(v);
-      line(tx, this.y - 5, tx, this.y + 5);
+    let lineCol = this.lineCol1;
+    let knobFill = this.lineCol1;
+    if (this.isHovering || this.dragging) {
+      lineCol = color(50, 255, 50);
+      knobFill = color(50, 255, 50);
     }
 
-    // Knob
-    let knobX = this.valueToX(this.value);
-    fill(this.lineCol1);
-    noStroke();
-    rectMode(CENTER);
-    rect(knobX, this.y, this.h, this.h, 3);
-    pop();                // Restore state
+    stroke(lineCol);
+    strokeWeight(2);
+
+    if (this.vertical) {
+      line(this.x, this.y, this.x, this.y + this.h);
+      let step = (this.maxVal <= 20) ? 1 : 10;
+      stroke(this.lineCol2);
+      for (let v = this.minVal; v <= this.maxVal; v += step) {
+        let ty = this.valueToPos(v);
+        line(this.x - 5, ty, this.x + 5, ty);
+      }
+      let knobY = this.valueToPos(this.value);
+      fill(knobFill);
+      noStroke();
+      rectMode(CENTER);
+      // Velikost knobu pro vertikální slider: this.w je jeho šířka
+      rect(this.x, knobY, this.touchAreaSize, this.touchAreaSize, 3);
+    } else {
+      line(this.x, this.y, this.x + this.w, this.y);
+      let step = (this.maxVal <= 20) ? 1 : 10;
+      stroke(this.lineCol2);
+      for (let v = this.minVal; v <= this.maxVal; v += step) {
+        let tx = this.valueToPos(v);
+        line(tx, this.y - 5, tx, this.y + 5);
+      }
+      let knobX = this.valueToPos(this.value);
+      fill(knobFill);
+      noStroke();
+      rectMode(CENTER);
+      // Velikost knobu pro horizontální slider: this.h je jeho výška
+      rect(knobX, this.y, this.touchAreaSize, this.touchAreaSize, 3);
+    }
+
+    pop();
   }
 }
+
+
+// Třída CheckBox2 - Upravená pro použití getPointer() a isPointerOver()
+class CheckBox2 {
+    constructor(x, y, size, initialState = false) {
+        this.x = x;
+        this.y = y;
+        this.size = size; 
+        this.checked = initialState; 
+
+        this.outerCornerRadius = 5; 
+        this.strokeWeight = 2;
+        this.strokeColor = color(0, 255, 0); 
+
+        this.padding = 5; 
+
+        this.innerSize = this.size - (2 * this.padding);
+        this.innerX = this.x + this.padding;
+        this.innerY = this.y + this.padding;
+
+        this.innerCornerRadius = Math.max(0, this.outerCornerRadius - Math.min(this.padding, this.outerCornerRadius));
+
+        this.fillColorChecked = color(0, 200, 0);
+        this.fillColorUnchecked = color(0, 80, 0);  
+
+        this.label = "";
+        this.labelColor = color(255); 
+        this.labelSize = 14;          
+        this.labelOffsetX = this.size + 10; 
+        this.labelOffsetY = this.size / 2 + this.labelSize / 3; 
+
+        // Nová vlastnost pro rozšíření dotykové oblasti checkboxu
+        this.interactivePadding = 10; 
+    }
+
+    // Získání souřadnic ukazatele (dotyk nebo myš) - Duplikujeme pro CheckBox, nebo vytvoříme utilitu
+    getPointer() {
+        if (touches.length > 0) {
+            return { x: touches[0].x, y: touches[0].y };
+        } else {
+            return { x: mouseX, y: mouseY };
+        }
+    }
+
+
+    // Používáme getPointer()
+    isPointerOver() {
+        let p = this.getPointer();
+        if (isNaN(p.x) || isNaN(p.y)) return false; // Kontrola validních souřadnic
+
+        // Oblast checkboxu + malý přesah pro lepší dotyk
+        const checkArea = p.x > this.x - this.interactivePadding &&
+                          p.x < this.x + this.size + this.interactivePadding &&
+                          p.y > this.y - this.interactivePadding &&
+                          p.y < this.y + this.size + this.interactivePadding;
+
+        push(); // Dočasně změníme nastavení textu
+        textSize(this.labelSize);
+        let textW = textWidth(this.label);
+        pop(); // Obnovíme původní nastavení textu
+        
+        // Oblast popisku
+        const labelArea = p.x > this.x + this.labelOffsetX - this.interactivePadding &&
+                          p.x < this.x + this.labelOffsetX + textW + this.interactivePadding &&
+                          p.y > this.y + this.labelOffsetY - this.labelSize - this.interactivePadding && 
+                          p.y < this.y + this.labelOffsetY + this.interactivePadding;
+
+        return checkArea || labelArea;
+    }
+
+    // Aktualizovaná textLabel metoda
+    textLabel(text, offsetX = null, offsetY = null, color = null, size = null) {
+        this.label = text;
+        this.labelOffsetX = (offsetX !== null) ? offsetX : (this.size + 10);
+        this.labelOffsetY = (offsetY !== null) ? offsetY : (this.size / 2 + this.labelSize / 3);
+        this.labelColor = (color !== null) ? color : this.labelColor;
+        this.labelSize = (size !== null) ? size : this.labelSize;
+        return this;
+    }
+
+    // Používáme isPointerOver()
+    pressed() {
+        if (this.isPointerOver()) {
+            this.checked = !this.checked;
+            return true;
+        }
+        return false;
+    }
+
+    draw() {
+        push();
+        colorMode(RGB);
+
+        stroke(this.strokeColor);
+        strokeWeight(this.strokeWeight);
+        noFill();
+        rect(this.x, this.y, this.size, this.size, this.outerCornerRadius);
+
+        noStroke();
+        if (this.checked) {
+            fill(this.fillColorChecked);
+        } else {
+            fill(this.fillColorUnchecked);
+        }
+        if (this.innerSize > 0) {
+            rect(this.innerX, this.innerY, this.innerSize, this.innerSize, this.innerCornerRadius);
+        }
+
+        if (this.label !== "") {
+            fill(this.labelColor);
+            noStroke();
+            textSize(this.labelSize);
+            textAlign(LEFT, BASELINE);
+            text(this.label, this.x + this.labelOffsetX, this.y + this.labelOffsetY);
+        }
+        pop();
+    }
+}
+
 
 //-----------------------
 class EffectShape {
