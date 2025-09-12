@@ -1,5 +1,111 @@
 // box_design.js
-// ver. 0.3 - 2025/09
+// ver. 0.5 - 2025/09
+
+// color style/mode
+// c[0]=bg1, bg2, base1, base2, spec1, spec2
+
+const colorsDarkGreenMode = ["#000000", "#222222", "#00ff00", "#00aa00", "#55ff00", "#00ff55"];
+
+const colorsLightBlaWhiMode = ["#cccccc", "#eeeeee", "#000000", "#333333", "#ff0000", "#0000ff"];
+
+
+// global var
+let currentColors = colorsDarkGreenMode;
+
+// selector
+function setColorStyle(cs) {
+  if (cs === "dark") currentColors = colorsDarkGreenMode;
+  if (cs === "light") currentColors = colorsLightBlaWhiMode;
+}
+
+
+function drawColorPalette(x, y, a, border = false) {
+  let offset = 5;
+  let totalWidth = 6 * a + 5 * offset; 
+  push();
+
+  // border
+  if (border) {
+    stroke(currentColors[2]);
+    strokeWeight(1);
+    noFill();
+    rect(x, y, totalWidth + 2*offset, a + 2*offset);
+  }
+
+  // color SQs
+  noStroke();
+  for (let i = 0; i < 6; i++) {
+    fill(currentColors[i]);
+    rect(x + offset + i * (a + offset), y + offset, a, a);
+  }
+
+  pop();
+}
+
+
+//--------------------------------------------
+class EffectShape {
+  constructor(p5Instance) {
+    this.p = p5Instance;
+    this.shadowOffsetX = 12;
+    this.shadowOffsetY = 12;
+    this.shadowBlur = 12;
+    this._shadowColor = this.p.color(0, 0, 0, 100); // Internal p5.Color object
+
+    this._blurEnabled = false; // New property to enable/disable blur
+    this.blurAmount = 8;       // Amount of blur in pixels
+  }
+
+  // Sets shadow color. Expects a p5.Color object.
+  setShadowColor(p5ColorObject) {
+    this._shadowColor = p5ColorObject;
+  }
+
+  // Enables or disables the blur effect.
+  // 'enabled' is a boolean (true/false).
+  // 'amount' (optional) sets the blur intensity in pixels.
+  blur(enabled, amount = this.blurAmount) {
+    this._blurEnabled = enabled;
+    this.blurAmount = amount;
+  }
+
+  // Applies a linear gradient to the drawingContext
+  // colorS and colorE must be p5.Color objects
+  linearGradient(sX, sY, eX, eY, colorS, colorE) {
+    let gradient = this.p.drawingContext.createLinearGradient(sX, sY, eX, eY);
+    gradient.addColorStop(0, colorS.toString());
+    gradient.addColorStop(1, colorE.toString());
+    this.p.drawingContext.fillStyle = gradient;
+  }
+
+  // Applies shadow and blur to the drawingContext
+  // Renamed from applyShadow to applyEffects for general use
+  applyEffects() {
+    // Apply shadow
+    this.p.drawingContext.shadowOffsetX = this.shadowOffsetX;
+    this.p.drawingContext.shadowOffsetY = this.shadowOffsetY;
+    this.p.drawingContext.shadowBlur = this.shadowBlur;
+    this.p.drawingContext.shadowColor = this._shadowColor.toString();
+
+    // Apply blur if enabled
+    if (this._blurEnabled) {
+      this.p.drawingContext.filter = `blur(${this.blurAmount}px)`;
+    }
+  }
+
+  // Resets all applied effects (shadow and blur)
+  resetEffects() {
+    // Reset shadow
+    this.p.drawingContext.shadowOffsetX = 0;
+    this.p.drawingContext.shadowOffsetY = 0;
+    this.p.drawingContext.shadowBlur = 0;
+    this.p.drawingContext.shadowColor = 'rgba(0,0,0,0)';
+
+    // Reset filter (blur)
+    this.p.drawingContext.filter = 'none'; // Important: 'none' resets all filters
+  }
+}
+
 
 // ========== DesignArc ==========
 class DesignArc {
@@ -365,6 +471,7 @@ class Template {
     this.yC = height / 2;
     this.radius1 = 300;
     this.radius2 = 350;
+    this.bgCol = color(0);
     this.basCol = color(0,127,0); // basic color 
     this.basColdark = color(0,63,0);
     this.strokeW = 1;
@@ -373,7 +480,7 @@ class Template {
     this.y0 = 0;
     this.w = width;
     this.h = height;
-    this.R = 600; 
+    this.R = width / 3;
 
     // "global" for extern btn
     this.btnW = 120;
@@ -381,6 +488,13 @@ class Template {
     this.btnD = 50;
     this.btnX0 = 25;
   }
+
+   changeColorStyle() {
+    // from "global currentColors"
+    this.bgCol = color(currentColors[0]);
+    this.basCol = color(currentColors[2]);
+    this.basColdark = color(currentColors[3]);
+    }
 
   draw() {
     stroke(this.basCol);
@@ -397,10 +511,17 @@ class Template {
 
   // simple center MASK
   drawCircle() {
-    fill(0);
+    fill(this.bgCol);
     noStroke();
     circle(this.xC, this.yC, this.R);
   }
+
+  drawRect() {
+    fill(this.bgCol);
+    noStroke();
+    rect(this.xC-this.R/2, this.yC-this.R/2, this.R,this.R);
+  }
+
 
   drawGrid() {
      stroke(this.basColdark);
