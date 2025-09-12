@@ -4,9 +4,9 @@
 // color style/mode
 // c[0]=bg1, bg2, base1, base2, spec1, spec2
 
-const colorsDarkGreenMode = ["#000000", "#222222", "#00ff00", "#00aa00", "#55ff00", "#00ff55"];
+const colorsDarkGreenMode = ["#000", "#030", "#0e0", "#090", "#5f0", "#0f5", "#FFF"];
 
-const colorsLightBlaWhiMode = ["#cccccc", "#eeeeee", "#000000", "#333333", "#ff0000", "#0000ff"];
+const colorsLightBlaWhiMode = ["#ccc", "#eee", "#000", "#333", "#f00", "#00f", "#FFF"];
 
 
 // global var
@@ -21,7 +21,9 @@ function setColorStyle(cs) {
 
 function drawColorPalette(x, y, a, border = false) {
   let offset = 5;
-  let totalWidth = 6 * a + 5 * offset; 
+  let n = currentColors.length;
+  let totalWidth = n * a + (n - 1) * offset; 
+
   push();
 
   // border
@@ -29,19 +31,18 @@ function drawColorPalette(x, y, a, border = false) {
     stroke(currentColors[2]);
     strokeWeight(1);
     noFill();
-    rect(x, y, totalWidth + 2*offset, a + 2*offset);
+    rect(x, y, totalWidth + 2 * offset, a + 2 * offset);
   }
 
   // color SQs
   noStroke();
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < n; i++) {
     fill(currentColors[i]);
     rect(x + offset + i * (a + offset), y + offset, a, a);
   }
 
   pop();
 }
-
 
 //--------------------------------------------
 class EffectShape {
@@ -227,6 +228,7 @@ class DesignGo10 {
 
     this.x0 = 0;
     this.y0 = 0;
+    this.color = (0,200,0);
 
     this.running = true;   // animation toggle
     this.grid = [];        // store line orientation (0/1)
@@ -257,7 +259,7 @@ class DesignGo10 {
     let stepX = this.mw / this.cols;
     let stepY = this.mh / this.rows;
 
-    stroke(0, 200, 0);
+    stroke(this.color);
     strokeWeight(this.thickness);
 
     // pokud běží a jsme na každém 10. framu → změň vzor
