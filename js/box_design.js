@@ -1,12 +1,15 @@
 // box_design.js
 // ver. 0.5 - 2025/09
 
+
 // color style/mode
 // c[0]=bg1, bg2, base1, base2, spec1, spec2
 
-const colorsDarkGreenMode = ["#000", "#030", "#0e0", "#090", "#5f0", "#0f5", "#FFF"];
+const colorsDarkGreenMode =   ["#000", "#030", "#0e0", "#090", "#5f0", "#0f5", "#FFF"];
 
 const colorsLightBlaWhiMode = ["#ccc", "#eee", "#000", "#333", "#f00", "#00f", "#FFF"];
+
+const colorsColorMode =       ["#00a", "#330", "#99", "#09a", "#5f0", "#0f5", "#FFF"];
 
 
 // global var
@@ -16,6 +19,7 @@ let currentColors = colorsDarkGreenMode;
 function setColorStyle(cs) {
   if (cs === "dark") currentColors = colorsDarkGreenMode;
   if (cs === "light") currentColors = colorsLightBlaWhiMode;
+  if (cs === "color") currentColors = colorsColorMode;
 }
 
 
@@ -108,6 +112,114 @@ class EffectShape {
 }
 
 
+// -----------------------------
+class GradientElement {
+  constructor(x, y, w, h, col1, col2, d=0) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.col1 = col1;
+    this.col2 = col2;
+    this.d = d; // 0:left→right, 1:right→left, 2:up→down, 3:down→up
+  }
+
+  show() {
+    let ctx = drawingContext;
+    let grad;
+
+    if (this.d === 0) { // left → right
+      grad = ctx.createLinearGradient(this.x, this.y, this.x + this.w, this.y);
+    } else if (this.d === 1) { // right → left
+      grad = ctx.createLinearGradient(this.x + this.w, this.y, this.x, this.y);
+    } else if (this.d === 2) { // up → down
+      grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.h);
+    } else if (this.d === 3) { // down → up
+      grad = ctx.createLinearGradient(this.x, this.y + this.h, this.x, this.y);
+    }
+
+    grad.addColorStop(0, this.col1.toString());
+    grad.addColorStop(1, this.col2.toString());
+
+    ctx.fillStyle = grad;
+    noStroke();
+    rect(this.x, this.y, this.w, this.h);
+  }
+}
+
+
+class ShadowElement {
+  constructor(x, y, w, h, col, offsetX = 10, offsetY = 10, blur = 15) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.col = col;         // p5.Color
+    this.offsetX = offsetX; // posun stínu
+    this.offsetY = offsetY;
+    this.blur = blur;       // velikost rozmazání
+  }
+
+  show(shape = "rect") {
+    let ctx = drawingContext;
+
+    // nastavení shadow
+    ctx.shadowOffsetX = this.offsetX;
+    ctx.shadowOffsetY = this.offsetY;
+    ctx.shadowBlur = this.blur;
+    ctx.shadowColor = this.col.toString();
+
+    // vlastní kreslení tvaru
+    noStroke();
+    fill(200); // barva výplně samotného tvaru
+    if (shape === "rect") {
+      rect(this.x, this.y, this.w, this.h);
+    } else if (shape === "ellipse") {
+      ellipse(this.x, this.y, this.w, this.h);
+    }
+
+    // reset shadow (aby se nepřenášelo na další tvary)
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "rgba(0,0,0,0)";
+  }
+}
+
+
+class GlowElement {
+  constructor(x, y, w, h, glowColor, blur = 30) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.glowColor = glowColor; // p5.Color
+    this.blur = blur;
+  }
+
+  show(shape = "ellipse") {
+    let ctx = drawingContext;
+
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = this.blur;
+    ctx.shadowColor = this.glowColor.toString();
+
+    noStroke();
+    fill(255); // barva samotného objektu
+    if (shape === "rect") {
+      rect(this.x, this.y, this.w, this.h);
+    } else if (shape === "ellipse") {
+      ellipse(this.x, this.y, this.w, this.h);
+    }
+
+    // reset
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "rgba(0,0,0,0)";
+  }
+}
+
+
 // ========== DesignArc ==========
 class DesignArc {
   constructor(r1, r2, alfa0, beta = 30, gama = 60, delta = 20, sw = 2) {
@@ -153,6 +265,31 @@ class DesignArc {
 
     line(x1, y1, x2, y2);
   }
+
+  // --- Glow effect ---
+ drawArcGlow(cx, cy, glowCol = color(255,255,100,200), blur = 30) {
+  let ctx = drawingContext;
+
+  // out
+  ctx.shadowBlur = blur * 2;
+  ctx.shadowColor = glowCol.toString();
+  this.drawArc(cx, cy);
+
+  // mid
+  ctx.shadowBlur = blur;
+  ctx.shadowColor = glowCol.toString();
+  this.drawArc(cx, cy);
+
+  // inn
+  ctx.shadowBlur = blur / 2;
+  ctx.shadowColor = glowCol.toString();
+  this.drawArc(cx, cy);
+
+  // reset
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "rgba(0,0,0,0)";
+}
+
 }
 
 
@@ -505,6 +642,7 @@ class Template {
     line(this.xL13, 0, this.xL13, height);
     line(this.xC, 0, this.xC, height); 
     line(this.xL23, 0, this.xL23, height);
+    line(0, this.yC, width, this.yC);     
 
     noFill();
     ellipse(this.xC, this.yC, this.radius1, this.radius1);

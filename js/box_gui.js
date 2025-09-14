@@ -1,5 +1,76 @@
 // box_gui.js | simple GUI library for p5.js
-// v0.2 | 2025/09
+// v0.3 | 2025/09
+
+
+class ProgressBar {
+  constructor(x, y, w, h, minVal = 0, maxVal = 100) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.minVal = minVal;
+    this.maxVal = maxVal;
+    this.value = minVal;
+
+    // barvy – budou nastaveny přes changeColorStyle
+    this.bgColor = color(33);
+    this.borderColor = color("green");
+    this.barColor = color("green");
+
+    this.isBorder = true;
+    this.borderOffset = 5;
+    this.cornerRadius = 6;
+  }
+
+  setValue(v) {
+    this.value = constrain(v, this.minVal, this.maxVal);
+  }
+
+  changeColorStyle() {
+    // použij barvy ze současného tématu
+    this.bgColor = color(currentColors[1]);   
+    this.borderColor = color(currentColors[2]); 
+    this.barColor = color(currentColors[3]);
+  }
+
+  draw() {
+    push();
+
+    // border
+    if (this.isBorder) {
+      stroke(this.borderColor);
+      strokeWeight(1);
+      noFill();
+      rect(
+        this.x - this.borderOffset,
+        this.y - this.borderOffset,
+        this.w + this.borderOffset * 2,
+        this.h + this.borderOffset * 2,
+        this.cornerRadius
+      );
+    }
+
+    noStroke();
+    fill(this.bgColor);
+    rect(this.x, this.y, this.w, this.h);
+
+    fill(this.barColor);
+    let ratio = (this.value - this.minVal) / (this.maxVal - this.minVal);
+
+    if (this.w >= this.h) {
+      // horizontální
+      rect(this.x, this.y, this.w * ratio, this.h);
+    } else {
+      // vertikální
+      let filled = this.h * ratio;
+      rect(this.x, this.y + this.h - filled, this.w, filled);
+    }
+
+    pop();
+  }
+}
+
+
 
 class ButtonBox {
   constructor(x, y, w, h, label) {
@@ -180,6 +251,116 @@ class CheckBox {
 }
 
 
+//================================
+class RadioButton {
+    constructor(x, y, size, label, selected=false, value=null) {
+        this.x = x; this.y = y; this.size = size;
+        this.label = label ?? "";
+        this.value = value ?? label; // pokud není value, použijeme label
+        this.selected = selected;
+
+        // vizuální parametry
+        this.strokeColor = color(0, 200, 0);
+        this.fillColor = color(0, 80, 0);
+        this.activeColor = color(0, 200, 0);
+
+        this.labelColor = color(0, 200, 0);
+        this.labelSize = 16;
+        this.labelOffsetX = this.size + 10;
+        this.labelOffsetY = this.labelSize / 3;
+    }
+
+    changeColorStyle() {
+        this.strokeColor = color(currentColors[2]); 
+        this.fillColor = color(currentColors[1]);
+        this.activeColor = color(currentColors[3]);
+        this.labelColor = color(currentColors[3]);
+    }
+
+    draw() {
+        push();
+        stroke(this.strokeColor);
+        strokeWeight(2);
+        noFill();
+        ellipse(this.x, this.y, this.size);
+
+        if (this.selected) {
+            noStroke();
+            fill(this.activeColor);
+            ellipse(this.x, this.y, this.size / 2); // vnitřní kolečko
+        }
+
+        // Label
+        if (this.label !== "") {
+            noStroke();
+            fill(this.labelColor);
+            textSize(this.labelSize);
+            textAlign(LEFT, CENTER);
+            text(this.label, this.x + this.labelOffsetX, this.y + this.labelOffsetY);
+        }
+        pop();
+    }
+
+    isHovered() {
+        let d = dist(mouseX, mouseY, this.x, this.y);
+        let insideCircle = d < this.size / 2;
+        let insideLabel =
+            mouseX > this.x + this.labelOffsetX &&
+            mouseX < this.x + this.labelOffsetX + textWidth(this.label) &&
+            mouseY > this.y - this.labelSize / 2 &&
+            mouseY < this.y + this.labelSize / 2;
+        return insideCircle || insideLabel;
+    }
+}
+
+class RadioGroup {
+    constructor() {
+        this.buttons = [];
+        this.selectedIndex = -1;
+    }
+
+    // přidáme parametr value
+    addButton(x, y, size, label, selected = false, value = null) {
+        let btn = new RadioButton(x, y, size, label, selected, value);
+        this.buttons.push(btn);
+        if (selected) this.selectedIndex = this.buttons.length - 1;
+        return this;
+    }
+
+    draw() {
+        this.buttons.forEach(b => b.draw());
+    }
+
+    pressed() {
+        for (let i = 0; i < this.buttons.length; i++) {
+            if (this.buttons[i].isHovered()) {
+                this.select(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    select(index) {
+        if (index >= 0 && index < this.buttons.length) {
+            this.buttons.forEach((b,j) => b.selected = (j === index));
+            this.selectedIndex = index;
+        }
+    }
+
+    getValue() {
+        if (this.selectedIndex >= 0) return this.buttons[this.selectedIndex].value;
+        return null;
+    }
+
+    changeColorStyle() {
+        this.buttons.forEach(b => b.changeColorStyle());
+    }
+}
+
+
+
+//==================================
 class BoxSlider {
   static active = null;
 
@@ -258,15 +439,25 @@ class BoxSlider {
   }
 
   update() {
-    this.isHovering = this.isPointerOver();
-    if (this.dragging && BoxSlider.active === this) {
-      let p = this.getPointer();
-      // Ensure the pointer has valid coordinates before using
-      if (!isNaN(p.x) && !isNaN(p.y)) {
-         this.value = this.posToValue(p.x, p.y);
+  if (this.vertical) {
+    if (mouseIsPressed || touches.length > 0) {
+      let mY = touches.length > 0 ? touches[0].y : mouseY;
+      if (mY > this.y && mY < this.y + this.h && mouseX > this.x && mouseX < this.x + this.w) {
+        let relY = constrain(mY - this.y, 0, this.h);
+        this.value = map(relY, 0, this.h, this.minVal, this.maxVal);
+      }
+    }
+  } else {
+    if (mouseIsPressed || touches.length > 0) {
+      let mX = touches.length > 0 ? touches[0].x : mouseX;
+      if (mX > this.x && mX < this.x + this.w && mouseY > this.y && mouseY < this.y + this.h) {
+        let relX = constrain(mX - this.x, 0, this.w);
+        this.value = map(relX, 0, this.w, this.minVal, this.maxVal);
       }
     }
   }
+}
+
 
   pressed() {
     if (this.isPointerOver()) {
