@@ -114,36 +114,48 @@ class EffectShape {
 
 // -----------------------------
 class GradientElement {
-  constructor(x, y, w, h, col1, col2, d=0) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.col1 = col1;
-    this.col2 = col2;
-    this.d = d; // 0:left→right, 1:right→left, 2:up→down, 3:down→up
+  constructor(x, y, w, h, col1, col2, d = 0) {
+    this.x = x; this.y = y; this.w = w; this.h = h;
+    this.col1 = col1; this.col2 = col2; this.d = d;
+  }
+
+  // helper: p5.Color -> CSS rgba string
+  p5ColorToCss(c) {
+    if (!c) return 'rgba(0,0,0,0)';
+    if (typeof c === 'string') return c;
+    if (c.levels) {
+      const [r,g,b,a] = c.levels;
+      return `rgba(${r},${g},${b},${(a === undefined ? 1 : a/255)})`;
+    }
+    // fallback
+    try { return c.toString(); } catch(e) { return 'rgba(0,0,0,0)'; }
   }
 
   show() {
-    let ctx = drawingContext;
-    let grad;
+    const ctx = drawingContext;
+    ctx.save();
 
+    // vytvoříme gradient podle směru
+    let grad;
     if (this.d === 0) { // left → right
       grad = ctx.createLinearGradient(this.x, this.y, this.x + this.w, this.y);
     } else if (this.d === 1) { // right → left
       grad = ctx.createLinearGradient(this.x + this.w, this.y, this.x, this.y);
     } else if (this.d === 2) { // up → down
       grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.h);
-    } else if (this.d === 3) { // down → up
+    } else { // 3 down → up
       grad = ctx.createLinearGradient(this.x, this.y + this.h, this.x, this.y);
     }
 
-    grad.addColorStop(0, this.col1.toString());
-    grad.addColorStop(1, this.col2.toString());
+    grad.addColorStop(0, this.p5ColorToCss(this.col1));
+    grad.addColorStop(1, this.p5ColorToCss(this.col2));
 
     ctx.fillStyle = grad;
-    noStroke();
-    rect(this.x, this.y, this.w, this.h);
+
+    // přímo vykreslíme přes drawingContext (nezávislé na p5 interním fill stylu)
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+
+    ctx.restore();
   }
 }
 
@@ -289,7 +301,50 @@ class DesignArc {
   ctx.shadowBlur = 0;
   ctx.shadowColor = "rgba(0,0,0,0)";
 }
+}
 
+
+// ========== TextCircle ==========
+class TextCircle {
+  constructor(x, y, r, txt) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.txt = txt;
+
+    this.fontSize = r / 5;
+    this.fontStyle = BOLD;
+    this.fontName = "Courier";
+    this.col = color(255);
+    this.startAngle = 0;         // začátek textu (stupně)
+    this.distanceAngle = 360;    // kolik stupňů pokryje text
+  }
+
+  show() {
+    textFont(this.fontName);
+    textSize(this.fontSize);
+    textAlign(CENTER, BASELINE);
+
+    // úhel mezi písmeny
+    let angleBetweenLetters = this.distanceAngle / this.txt.length;
+
+    push();
+    translate(this.x, this.y);
+
+    for (let i = 0; i < this.txt.length; i++) {
+      let currentAngle = this.startAngle + i * angleBetweenLetters; // <── offset
+      push();
+      rotate(radians(currentAngle));  // teď už stupně převést na radiany
+      translate(0, -this.r);
+      fill(this.col);
+      noStroke();
+      textStyle(this.fontStyle);
+      text(this.txt[i], 0, 0);
+      pop();
+    }
+
+    pop();
+  }
 }
 
 
