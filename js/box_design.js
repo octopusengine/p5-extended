@@ -589,7 +589,9 @@ class BoxPerlin {
 
 
 
-//=======================
+//--------------------------------------------------
+// Oscillating Sphere
+//--------------------------------------------------
 class OscSphere {
   constructor(x, y, r) {
     this.x = x;
@@ -597,9 +599,9 @@ class OscSphere {
     this.r = r;
     this.running = true;
 
-    this.num = 20;
-    this.step = 20;
-    this.strokeCol = color(255);
+    this.num = 20;               // number of waves
+    this.step = radians(20);     // phase step between waves
+    this.strokeCol = color(0,200,0);
 
     this.waves = [];
     for (let i = 0; i < this.num; i++) {
@@ -614,7 +616,7 @@ class OscSphere {
     noFill();
     for (let w of this.waves) {
       w.display();
-      if (this.running) w.move();  // <-- running
+      if (this.running) w.move();
     }
     pop();
   }
@@ -622,33 +624,35 @@ class OscSphere {
 
 
 //--------------------------------------------------
-// Wave Sphere class 
+// Wave Sphere (single oscillating wave)
 //--------------------------------------------------
 class WaveSph {
   constructor(shift, r) {
-    this.shift = shift;
-    this.angle = 0;
-    this.movement = 0;
-    this.period = 1;
-    this.r = r;
+    this.shift = shift;   // phase shift between waves
+    this.angle = 0;       // animation angle
+    this.movement = 0;    // cosine movement value
+    this.period = 1;      // frequency multiplier
+    this.r = r;           // radius of the sphere
   }
 
   display() {
-    for (let i = 0; i <= 360; i++) {
-      let x = map(i, 0, 360, -this.r, this.r);
+    // draw points around the circle
+    for (let a = 0; a <= TWO_PI; a += radians(1)) { // step = 1°
+      let x = map(a, 0, TWO_PI, -this.r, this.r);
 
-      // bezpečné sqrt
+      // safe sqrt for ellipse formula
       let tmp = 1 - (x / this.r) * (x / this.r);
       tmp = max(0, tmp);
       let amplitude = this.r * sqrt(tmp);
 
-      let y = amplitude * sin((i + this.angle + this.shift * this.movement) * this.period);
+      // vertical displacement with sine
+      let y = amplitude * sin((a + this.angle + this.shift * this.movement) * this.period);
       point(x, y);
     }
   }
 
   move() {
-    this.angle += 1;
+    this.angle += 0.02;        // animation speed
     this.movement = cos(this.angle);
   }
 }
