@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>5x7 Font Editor</title>
+  <script src="js/p5.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="dark.css">
+  <style>
+    body { background: #222; color: #eee; font-family: monospace; }
+    pre { background: #111; padding: 10px; }
+  </style>
+</head>
+<body>
+  <main></main>
+  <pre id="hexout">HEX DATA: </pre>
+
+<script>
+let cols = 5;
+let rows = 7;
+let cellSize = 40;
+let grid = [];
+let hexBox;
+
+function setup() {
+  createCanvas(cols * cellSize + 1, rows * cellSize + 1).parent(document.querySelector("main"));
+
+  // najdeme <pre>
+  hexBox = document.getElementById("hexout");
+
+  // init grid = false
+  for (let x = 0; x < cols; x++) {
+    grid[x] = [];
+    for (let y = 0; y < rows; y++) {
+      grid[x][y] = false;
+    }
+  }
+  updateHex();
+}
+
+function draw() {
+  background(30);
+  stroke(80);
+
+  // vykreslení mřížky
+  for (let x = 0; x < cols; x++) {
+    for (let y = 0; y < rows; y++) {
+      let px = x * cellSize;
+      let py = y * cellSize;
+      fill(grid[x][y] ? color(0, 255, 0) : color(40));
+      rect(px, py, cellSize, cellSize);
+    }
+  }
+}
+
+function mousePressed() {
+  let gx = floor(mouseX / cellSize);
+  let gy = floor(mouseY / cellSize);
+  if (gx >= 0 && gx < cols && gy >= 0 && gy < rows) {
+    grid[gx][gy] = !grid[gx][gy];
+    updateHex();
+  }
+}
+
+function updateHex() {
+  let hexVals = [];
+  for (let x = 0; x < cols; x++) {
+    let val = 0;
+    for (let y = 0; y < rows; y++) {
+      if (grid[x][y]) {
+        val |= (1 << y);
+      }
+    }
+    hexVals.push("0x" + nf(val.toString(16), 2));
+  }
+  hexBox.textContent = "HEX DATA: " + hexVals.join(", ");
+}
+</script>
+</body>
+</html>
