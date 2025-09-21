@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <script src="js/p5.min.js"></script>
+  <script src="js/digital_font.js"></script>
+  <script src="js/box_design.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="dark.css">
+</head>
+<body>
+<script>
+
+// ----- p5 sketch -----
+let df, term;
+
+function setup() {
+  createCanvas(800, 600);
+  t0 = new Template();
+
+  df = new DigiFont(DIGI_GLYPHS)
+          .setColor(0, 255, 0)
+          .setFontSize(3)
+          .setPixel("circle");
+
+  term = new Terminal(t0.xL13, 100, t0.xL23, 390, df, 28, 3);
+
+  // Reg new command "psw"
+  if (typeof term.registerCommand === "function") {
+    term.registerCommand("psw", () => "your password is 123");
+  } else {
+    console.warn("Terminal class does not support registerCommand().");
+  }
+
+  console.log("Setup ok");
+}
+
+function draw() {
+  background(0);
+
+t0.draw();
+
+  term.draw();
+
+  // static dwn
+  df.setPixel("circle").setColor(80, 80, 80).setFontSize(3);
+  df.drawText("TERMINAL DEMO", 20, 560);
+}
+
+// --- x Enter / Backspace
+function keyTyped() {
+  if (key !== "Enter" && key !== "Backspace") {
+    term.handleKey(key);
+  }
+}
+
+// ENTER a Backspace jen v keyPressed()
+function keyPressed() {
+  if (keyCode === ENTER) term.handleKey("Enter");
+  else if (keyCode === BACKSPACE) term.handleKey("Backspace");
+}
+
+</script>
+</body>
+</html>
