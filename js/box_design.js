@@ -748,5 +748,86 @@ class Template {
 }
 
 
+//---------------------------
+class JacobLadder {
+  constructor(x, y, size = 100) {
+    this.baseX = x;       // center of the ladder
+    this.baseY = y;       // bottom position
+    this.size = size;     // absolute pixel width/scale
+
+    this.xoff = 0;
+    this.yoff = random(100);
+    this.step = 10;
+    this.range = size;        // spark amplitude in pixels
+    this.left = this.baseX - size / 2;
+    this.right = this.baseX + size / 2;
+    this.start = this.baseY;
+    this.end = this.baseY - size * 0.8;  // ladder height
+    this.rise = 1;                       // speed of spark rising
+    this.locate = random(this.end, this.start);
+  }
+
+  update() {
+    // move the spark upwards
+    this.locate -= this.rise;
+    this.rise += 0.25;
+
+    if (this.locate < this.end) {
+      this.locate = this.start;
+      this.rise = 2;
+      this.step = 10;
+    }
+
+    // draw the ladder rods
+    push();
+    strokeWeight(10); // rod thickness in pixels
+    stroke(60, 100);
+    line(this.baseX - this.size * 0.2, this.baseY,
+         this.baseX - this.size * 0.7, this.baseY - this.size * 0.8);
+    line(this.baseX + this.size * 0.2, this.baseY,
+         this.baseX + this.size * 0.7, this.baseY - this.size * 0.8);
+    pop();
+
+    // draw the electric spark
+    push();
+    this.xoff = 0;
+    beginShape();
+
+    this.left = map(this.locate, this.start, this.end,
+                    this.baseX - this.size * 0.2,
+                    this.baseX - this.size * 0.7);
+    this.right = map(this.locate, this.start, this.end,
+                     this.baseX + this.size * 0.2,
+                     this.baseX + this.size * 0.7);
+    this.step = map(this.locate, this.start, this.end, 10, 2);
+
+    for (let x = this.left; x < this.right; x += this.step) {
+      let y = map(noise(this.xoff, this.yoff, frameCount * 0.025),
+                  0, 1, -this.range, this.range);
+      vertex(x, y + this.locate);
+      this.xoff += 0.075;
+    }
+
+    this.yoff += 0.075;
+
+    let thick = map(this.locate, this.start, this.end, 8, 1); // thickness in pixels
+    stroke(0, 250, 0, 255);
+    strokeWeight(thick);
+
+    // occasional bright flash
+    if (random() < 0.2) {
+      stroke(255, 255);
+      strokeWeight(thick * 0.5);
+    }
+
+    noFill();
+    endShape();
+    pop();
+  }
+}
+
+
+
+
 
 

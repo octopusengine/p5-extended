@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Gears - Class Version</title>
+  <script src="js/p5.min.js"></script>
+  <script src="js/box_design.js"></script>
+  <script src="js/box_gears.js"></script>
+</head>
+<body>
+<script>
+let bigGear, smallGear, thirdGear;
+
+// Sliders
+let sliderR1, sliderR2, sliderTeeth1;
+let valR1, valR2, valTeeth1;
+let speed;
+
+function setup() {
+  createCanvas(800, 600);
+  angleMode(RADIANS);
+
+  t0 = new Template();
+  t1 = new Template();
+  t1.basCol = color(0,100,0);
+  t1.gridStep = 10;
+  t1.x0 = t0.btnX0;
+  //t1.y0 = 20;
+  t1.w = t0.btnW;
+  t1.strokeW = 3;
+
+  speed = 0.003;
+
+  // Instances
+  bigGear = new Gear(width/2, height/2, 150, 12, 3, 50, color(0,255,0), 2);
+  smallGear = new Gear(0, 0, 32, 12, 3, 0, color(0,255,0), 2);
+  thirdGear = new Gear(0, 0, 128, 12, 3, 39, color(0,255,0), 2);
+
+  // Sliders
+  sliderR1 = createSlider(20, 300, 150);
+  sliderR1.position(20, 20);
+  valR1 = createSpan(sliderR1.value());
+  valR1.position(160, 20);
+  sliderR1.input(updateGears);
+
+  sliderR2 = createSlider(20, 300, 25);
+  sliderR2.position(20, 50);
+  valR2 = createSpan(sliderR2.value());
+  valR2.position(160, 50);
+  sliderR2.input(updateGears);
+
+  sliderTeeth1 = createSlider(30, 180, 50);
+  sliderTeeth1.position(20, 80);
+  valTeeth1 = createSpan(sliderTeeth1.value());
+  valTeeth1.position(160, 80);
+  sliderTeeth1.input(updateGears);
+
+  updateGears();
+}
+
+function draw() {
+  background(0);
+
+  // update gear parameters in real time
+  updateGears();
+
+  // --- originální velká sada kol ---
+  drawGearWithCenter(bigGear);
+  drawGearWithCenter(smallGear);
+  drawGearWithCenter(thirdGear);
+
+  // rotace
+  bigGear.updateRotation(speed);
+  smallGear.updateRotation(speed * smallGear.ratio);
+  thirdGear.rotation = smallGear.rotation;
+
+  // panel
+  fill(60);
+  rect(0,0,t0.xL13,t0.h);
+  t0.draw();
+  t0.drawGrid();
+  t1.drawGridPoints();
+
+
+
+  // --- kopie 1
+  push();
+  translate(330, 250); // posun do pravého horního rohu
+  scale(0.7);   
+  let darkGreenStroke = color(0,150,0);
+  let darkGreenFill   = color(0,150,0,32); // opacity
+  drawGearWithCenter(bigGear,   darkGreenStroke, darkGreenFill);
+  drawGearWithCenter(smallGear, darkGreenStroke, darkGreenFill);
+  drawGearWithCenter(thirdGear, darkGreenStroke, darkGreenFill);
+  pop();
+
+  // --- zmenšená kopie 2
+  push();
+  translate(290, 50); // posun do pravého horního rohu
+  scale(0.5);                  // poloviční měřítko
+  darkGreenStroke = color(0,255,0);
+  darkGreenFill   = color(0,150,0,128); // opacity
+  drawGearWithCenter(bigGear,   darkGreenStroke, darkGreenFill);
+  drawGearWithCenter(smallGear, darkGreenStroke, darkGreenFill);
+  drawGearWithCenter(thirdGear, darkGreenStroke, darkGreenFill);
+
+  pop();
+
+
+}
+
+// helper to draw gear and its center
+function drawGearWithCenter(gear, col = null, fillCol = null) {
+  let oldCol = gear.col;
+  if (col !== null) {
+    gear.col = col;
+  }
+
+  gear.draw(fillCol);
+
+  // tečka uprostřed
+  fill(col !== null ? col : color(0,255,0));
+  noStroke();
+  ellipse(gear.x, gear.y, 10);
+  noFill();
+
+  gear.col = oldCol;
+}
+
+function updateGears() {
+  // update gear parameters from sliders
+  bigGear.radius = sliderR1.value();
+  smallGear.radius = sliderR2.value();
+  bigGear.teeth = sliderTeeth1.value();
+
+  valR1.html(bigGear.radius);
+  valR2.html(smallGear.radius);
+  valTeeth1.html(bigGear.teeth);
+
+  // recompute smallGear teeth & ratio
+  let module = (2 * bigGear.radius) / bigGear.teeth;
+  smallGear.teeth = Math.round((2 * smallGear.radius) / module);
+
+  let ratio = -bigGear.teeth / smallGear.teeth;
+  let centerDist = bigGear.radius + smallGear.radius - Math.min(bigGear.toothHeight, smallGear.toothHeight)*0.3
+                   + (bigGear.toothHeight + smallGear.toothHeight)*0.5 +3; //3 magicConstant
+
+  bigGear.setPosition(width/2 - centerDist/2, height/2);
+  smallGear.setPosition(width/2 + centerDist/2, height/2);
+  smallGear.setRotationOffset(PI / smallGear.teeth);
+  smallGear.setRatio(ratio);
+
+  // third gear placed at smallGear center
+  thirdGear.setPosition(smallGear.x, smallGear.y);
+  thirdGear.setRotationOffset(0);
+  thirdGear.setRatio(-smallGear.teeth / thirdGear.teeth);
+}
+</script>
+</body>
+</html>
