@@ -1,4 +1,4 @@
-// digital_font.js — jednoduchá verze s pevnými daty + jednorázové animace
+// digital_font.js — simple version with fixed data + one-shot animations
 // ver. 0.3 - 2025/09
 
 class DigiFont {
@@ -8,18 +8,18 @@ class DigiFont {
     this.dotScale = 0.9;
     this.glyphs = new Map();
 
-    // Výchozí nastavení
-    this.defaultColor = [0, 255, 0, 255]; // zelená
+    // Default settings
+    this.defaultColor = [0, 255, 0, 255]; // green
     this.defaultSize = 10;
-    this.pixelShape = "circle"; // výchozí tvar pixelu
+    this.pixelShape = "circle"; // default pixel shape
 
-    // registry animací
+    // animation registry
     this._anims = new Map();
 
     if (glyphMap) this.loadGlyphs(glyphMap);
   }
 
-  // ----- Nastavení -----
+  // ----- Settings -----
   setColor(r, g, b, a = 255) { this.defaultColor = [r, g, b, a]; return this; }
   setFontSize(size) { this.defaultSize = size; return this; }
   setPixel(shape) { if (["circle", "square"].includes(shape)) this.pixelShape = shape; return this; }
@@ -28,7 +28,7 @@ class DigiFont {
     this.setColor(currentColors[2].levels);
   }
 
-  // ----- Animace -----
+  // ----- Animations -----
   _getAnim(id) {
     if (!this._anims.has(id)) this._anims.set(id, { t0: null, done: false });
     return this._anims.get(id);
@@ -37,155 +37,150 @@ class DigiFont {
   isAnimDone(id) { const rec = this._anims.get(id); return !!(rec && rec.done); }
 
   // ---
-playFromAlpha(id, text, x, y, opts = {}) {
-  const {
-    duration = 1000,
-    delay = 0,
-    color = this.defaultColor,
-    letterSpacing = 1,
-    monoSpacing = null,
-    dotScale = this.dotScale,
-    flipY = false,
-    fallback = '?',
-    size: sizeOpt    // ← podporuj i opts.size
-  } = opts;
+  playFromAlpha(id, text, x, y, opts = {}) {
+    const {
+      duration = 1000,
+      delay = 0,
+      color = this.defaultColor,
+      letterSpacing = 1,
+      monoSpacing = null,
+      dotScale = this.dotScale,
+      flipY = false,
+      fallback = '?',
+      size: sizeOpt    // ← support opts.size as well
+    } = opts;
 
-  //const fontSize = (sizeOpt ?? size ?? this.defaultSize);  // ← jediné místo pravdy
-  const fontSize = this.defaultSize;
-  // ... dál už všude používej fontSize ...
-  // před startem:
-  const rec = this._getAnim(id);
-  const now = (typeof millis === 'function') ? millis() : Date.now();
-  if (rec.t0 == null) rec.t0 = now;
+    //const fontSize = (sizeOpt ?? size ?? this.defaultSize);  // ← single source of truth
+    const fontSize = this.defaultSize;
+    // ... from here on always use fontSize ...
+    // before start:
+    const rec = this._getAnim(id);
+    const now = (typeof millis === 'function') ? millis() : Date.now();
+    if (rec.t0 == null) rec.t0 = now;
 
-  let elapsed = now - rec.t0;
-  if (elapsed < delay) {
-    const col0 = [color[0], color[1], color[2], 0];
-    this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color: col0, dotScale, flipY, fallback });
-    return false;
-  }
-
-  let p = (elapsed - delay) / duration;
-  if (p >= 1) { p = 1; rec.done = true; }
-
-  const baseA = (color.length >= 4 ? color[3] : 255);
-  const col = [color[0], color[1], color[2], Math.round(baseA * p)];
-  this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color: col, dotScale, flipY, fallback });
-  return rec.done;
-}
-
-typeWriter(id, text, x, y, opts = {}, doneCallback = null) {
-  const {
-    duration = 80,          // ms na JEDEN znak
-    delay = 0,
-    color = this.defaultColor,
-    letterSpacing = 1,
-    monoSpacing = null,
-    dotScale = this.dotScale,
-    flipY = false,
-    fallback = '?',
-    easing = t => 1 - Math.pow(1 - t, 3)
-  } = opts;
-
-  const fontSize = this.defaultSize;
-  const rec = this._getAnim(id);
-  const now = (typeof millis === 'function') ? millis() : Date.now();
-  if (rec.t0 == null) rec.t0 = now;
-
-  let elapsed = now - rec.t0;
-
-  if (elapsed < delay) {
-    return false;
-  }
-  elapsed -= delay;
-
-  const totalChars = [...String(text)].length;
-  const perChar = duration;
-  const fullChars = Math.floor(elapsed / perChar);
-  const frac = Math.min(1, (elapsed % perChar) / perChar);
-  const idx = Math.min(fullChars, totalChars - 1);
-
-  const advCells = monoSpacing != null ? monoSpacing : this.cols;
-  const cellAdvance = (advCells + letterSpacing) * fontSize;
-
-  if (fullChars > 0) {
-    const doneText = [...text].slice(0, Math.min(fullChars, totalChars)).join("");
-    this.drawText(doneText, x, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
-  }
-
-  if (fullChars < totalChars) {
-    const ch = [...text][idx];
-    const xBase = x + fullChars * cellAdvance;
-
-    const e = easing(frac);
-    const xNow = xBase - (1 - e) * (advCells * fontSize);
-    const baseA = (color.length >= 4 ? color[3] : 255);
-    const col = [color[0], color[1], color[2], Math.round(baseA * e)];
-
-    this.drawText(ch, xNow, y, fontSize, { letterSpacing, monoSpacing, color: col, dotScale, flipY, fallback });
-  }
-
-  if (elapsed >= totalChars * perChar) {
-    this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
-    if (!rec.done) {
-      rec.done = true;
-      console.log(`typeWriter[${id}] hotovo – spouštím callback`);
-      if (doneCallback) doneCallback();
+    let elapsed = now - rec.t0;
+    if (elapsed < delay) {
+      const col0 = [color[0], color[1], color[2], 0];
+      this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color: col0, dotScale, flipY, fallback });
+      return false;
     }
-    return true;
+
+    let p = (elapsed - delay) / duration;
+    if (p >= 1) { p = 1; rec.done = true; }
+
+    const baseA = (color.length >= 4 ? color[3] : 255);
+    const col = [color[0], color[1], color[2], Math.round(baseA * p)];
+    this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color: col, dotScale, flipY, fallback });
+    return rec.done;
   }
-  return false;
-}
 
+  typeWriter(id, text, x, y, opts = {}, doneCallback = null) {
+    const {
+      duration = 80,          // ms per ONE character
+      delay = 0,
+      color = this.defaultColor,
+      letterSpacing = 1,
+      monoSpacing = null,
+      dotScale = this.dotScale,
+      flipY = false,
+      fallback = '?',
+      easing = t => 1 - Math.pow(1 - t, 3)
+    } = opts;
 
+    const fontSize = this.defaultSize;
+    const rec = this._getAnim(id);
+    const now = (typeof millis === 'function') ? millis() : Date.now();
+    if (rec.t0 == null) rec.t0 = now;
 
-playFromLeft(id, text, x, y, opts = {}) {
-  const {
-    duration = 1000,
-    delay = 0,
-    easing = t => 1 - Math.pow(1 - t, 3),
-    color = this.defaultColor,
-    letterSpacing = 1,
-    monoSpacing = null,
-    dotScale = this.dotScale,
-    flipY = false,
-    fallback = '?',
-    size: sizeOpt
-  } = opts;
+    let elapsed = now - rec.t0;
 
-  //const fontSize = (sizeOpt ?? size ?? this.defaultSize);
-  const fontSize = this.defaultSize;
+    if (elapsed < delay) {
+      return false;
+    }
+    elapsed -= delay;
 
-  const rec = this._getAnim(id);
-  const now = (typeof millis === 'function') ? millis() : Date.now();
-  if (rec.t0 == null) rec.t0 = now;
+    const totalChars = [...String(text)].length;
+    const perChar = duration;
+    const fullChars = Math.floor(elapsed / perChar);
+    const frac = Math.min(1, (elapsed % perChar) / perChar);
+    const idx = Math.min(fullChars, totalChars - 1);
 
-  let elapsed = now - rec.t0;
-  const cells = this.measureCells(text, letterSpacing, monoSpacing);
-  const wpx = cells * fontSize;
+    const advCells = monoSpacing != null ? monoSpacing : this.cols;
+    const cellAdvance = (advCells + letterSpacing) * fontSize;
 
-  if (elapsed < delay) {
-    const xNow = x - wpx;
-    const col0 = [color[0], color[1], color[2], 0];
-    this.drawText(text, xNow, y, fontSize, { letterSpacing, monoSpacing, color: col0, dotScale, flipY, fallback });
+    if (fullChars > 0) {
+      const doneText = [...text].slice(0, Math.min(fullChars, totalChars)).join("");
+      this.drawText(doneText, x, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
+    }
+
+    if (fullChars < totalChars) {
+      const ch = [...text][idx];
+      const xBase = x + fullChars * cellAdvance;
+
+      const e = easing(frac);
+      const xNow = xBase - (1 - e) * (advCells * fontSize);
+      const baseA = (color.length >= 4 ? color[3] : 255);
+      const col = [color[0], color[1], color[2], Math.round(baseA * e)];
+
+      this.drawText(ch, xNow, y, fontSize, { letterSpacing, monoSpacing, color: col, dotScale, flipY, fallback });
+    }
+
+    if (elapsed >= totalChars * perChar) {
+      this.drawText(text, x, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
+      if (!rec.done) {
+        rec.done = true;
+        console.log(`typeWriter[${id}] finished – running callback`);
+        if (doneCallback) doneCallback();
+      }
+      return true;
+    }
     return false;
   }
 
-  let p = (elapsed - delay) / duration;
-  if (p >= 1) { p = 1; rec.done = true; }
-  const e = easing(Math.max(0, Math.min(1, p)));
 
-  const xNow = x - (1 - e) * wpx;
-  this.drawText(text, xNow, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
-  return rec.done;
-}
+  playFromLeft(id, text, x, y, opts = {}) {
+    const {
+      duration = 1000,
+      delay = 0,
+      easing = t => 1 - Math.pow(1 - t, 3),
+      color = this.defaultColor,
+      letterSpacing = 1,
+      monoSpacing = null,
+      dotScale = this.dotScale,
+      flipY = false,
+      fallback = '?',
+      size: sizeOpt
+    } = opts;
+
+    //const fontSize = (sizeOpt ?? size ?? this.defaultSize);
+    const fontSize = this.defaultSize;
+
+    const rec = this._getAnim(id);
+    const now = (typeof millis === 'function') ? millis() : Date.now();
+    if (rec.t0 == null) rec.t0 = now;
+
+    let elapsed = now - rec.t0;
+    const cells = this.measureCells(text, letterSpacing, monoSpacing);
+    const wpx = cells * fontSize;
+
+    if (elapsed < delay) {
+      const xNow = x - wpx;
+      const col0 = [color[0], color[1], color[2], 0];
+      this.drawText(text, xNow, y, fontSize, { letterSpacing, monoSpacing, color: col0, dotScale, flipY, fallback });
+      return false;
+    }
+
+    let p = (elapsed - delay) / duration;
+    if (p >= 1) { p = 1; rec.done = true; }
+    const e = easing(Math.max(0, Math.min(1, p)));
+
+    const xNow = x - (1 - e) * wpx;
+    this.drawText(text, xNow, y, fontSize, { letterSpacing, monoSpacing, color, dotScale, flipY, fallback });
+    return rec.done;
+  }
 
 
-
-// ---/---
-
-
-  // ----- Glyphy a kreslení -----
+  // ----- Glyphs and drawing -----
   loadGlyphs(obj) {
     for (const key of Object.keys(obj)) {
       const bytes = obj[key];
@@ -247,7 +242,7 @@ playFromLeft(id, text, x, y, opts = {}) {
   }
 }
 
-// ASCII 32–126 + malá písmena
+// ASCII 32–126 + lowercase letters
 const DIGI_GLYPHS = {
   " ": [0x00,0x00,0x00,0x00,0x00],
   "!": [0x00,0x00,0x5F,0x00,0x00],
@@ -357,6 +352,8 @@ class Terminal {
     this.activeLine = 1;
     this.showCursor = true;
     this.cursorTimer = 0;
+    this.cornerRadius = 6;
+
 
     this.commands = {}; // <- zde budeme ukládat externí příkazy
   }
@@ -426,7 +423,7 @@ class Terminal {
     push();
     noFill();
     stroke(0, 255, 0);
-    rect(this.x, this.y, this.w, this.h);
+    rect(this.x, this.y, this.w, this.h,this.cornerRadius );
     pop();
 
     // výpočet počtu řádků, které se vejdou

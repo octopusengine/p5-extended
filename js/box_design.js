@@ -658,93 +658,48 @@ class WaveSph {
 }
 
 
-//============================ t e m p l a t e s ====================================
+//---------------------------
+class Chart {
+  constructor(x, y, w, h, data, options = {}) {
+    this.x = x;
+    this.y = y;
+    this.w = w; // celková šířka včetně borderu
+    this.h = h; // celková výška včetně borderu
+    this.data = data;
 
-// ========== Template ==========
-class Template {
-  constructor() {
-    this.xL13 = width / 3;
-    this.xL23 = width - this.xL13;
-    this.xC = width / 2;
-    this.yC = height / 2;
-    this.radius1 = 300;
-    this.radius2 = 350;
-    this.bgCol = color(0);
-    this.basCol = color(0,127,0); // basic color 
-    this.basColdark = color(0,63,0);
-    this.strokeW = 1;
-    this.gridStep = 100;
-    this.x0 = 0;
-    this.y0 = 0;
-    this.w = width;
-    this.h = height;
-    this.R = width / 3;
-
-    // "global" for extern btn
-    this.btnW = 120;
-    this.btnH = 39; 
-    this.btnD = 50;
-    this.btnX0 = 25;
+    // volitelné properties s defaulty
+    this.margin = options.margin || 10;
+    this.borderColor = options.borderColor || color(0, 255, 0);
+    this.borderWeight = options.borderWeight || 2;
   }
-
-   changeColorStyle() {
-    // from "global currentColors"
-    this.bgCol = color(currentColors[0]);
-    this.basCol = color(currentColors[2]);
-    this.basColdark = color(currentColors[3]);
-    }
 
   draw() {
-    stroke(this.basCol);
-    strokeWeight(this.strokeW);
+    background(0); // smažeme předchozí frame
 
-    line(this.xL13, 0, this.xL13, height);
-    line(this.xC, 0, this.xC, height); 
-    line(this.xL23, 0, this.xL23, height);
-    line(0, this.yC, width, this.yC);     
+    let graphWidth = this.w - 2 * this.margin;
+    let graphHeight = this.h - 2 * this.margin;
+    let barWidth = graphWidth / this.data.length;
 
+    for (let i = 0; i < this.data.length; i++) {
+      let val = this.data[i];
+      let barHeight = val * graphHeight;
+      fill(0, 200, 0);
+      noStroke();
+      // vykreslíme uvnitř marginu
+      rect(this.x + this.margin + i * barWidth,
+           this.y - this.margin - barHeight,
+           barWidth * 0.8, barHeight);
+    }
+
+    this.drawBorder(); // border kolem celého grafu
+  }
+
+  drawBorder() {
     noFill();
-    ellipse(this.xC, this.yC, this.radius1, this.radius1);
-    ellipse(this.xC, this.yC, this.radius2, this.radius2);
+    stroke(this.borderColor);
+    strokeWeight(this.borderWeight);
+    rect(this.x, this.y - this.h, this.w, this.h);
   }
-
-  // simple center MASK
-  drawCircle() {
-    fill(this.bgCol);
-    noStroke();
-    circle(this.xC, this.yC, this.R);
-  }
-
-  drawRect() {
-    fill(this.bgCol);
-    noStroke();
-    rect(this.xC-this.R/2, this.yC-this.R/2, this.R,this.R);
-  }
-
-
-  drawGrid() {
-     stroke(this.basColdark);
-     strokeWeight(this.strokeW); 
-  
-    for (let x = 0; x <= width; x += this.gridStep) {
-      line(x, 0, x, height);
-    }
-
-    for (let y = 0; y <= height; y += this.gridStep) {
-      line(0, y, width, y);
-    }
-  }
-
- drawGridPoints() {
-  stroke(this.basCol);
-  strokeWeight(this.strokeW);
-
-  for (let x = 0; x <= this.w ; x += this.gridStep) {
-    for (let y = 0; y <= this.h ; y += this.gridStep) {
-      point(this.x0 + x, this.y0 + y);
-    }
-  }
-}
 }
 
 
@@ -825,6 +780,96 @@ class JacobLadder {
     pop();
   }
 }
+
+
+//============================ t e m p l a t e s ====================================
+
+// ========== Template ==========
+class Template {
+  constructor() {
+    this.xL13 = width / 3;
+    this.xL23 = width - this.xL13;
+    this.xC = width / 2;
+    this.yC = height / 2;
+    this.radius1 = 300;
+    this.radius2 = 350;
+    this.bgCol = color(0);
+    this.basCol = color(0,127,0); // basic color 
+    this.basColdark = color(0,63,0);
+    this.strokeW = 1;
+    this.gridStep = 100;
+    this.x0 = 0;
+    this.y0 = 0;
+    this.w = width;
+    this.h = height;
+    this.R = width / 3;
+
+    // "global" for extern btn
+    this.btnW = 120;
+    this.btnH = 39; 
+    this.btnD = 50;
+    this.btnX0 = 25;
+  }
+
+   changeColorStyle() {
+    // from "global currentColors"
+    this.bgCol = color(currentColors[0]);
+    this.basCol = color(currentColors[2]);
+    this.basColdark = color(currentColors[3]);
+    }
+
+  draw() {
+    stroke(this.basCol);
+    strokeWeight(this.strokeW);
+
+    line(this.xL13, 0, this.xL13, height);
+    line(this.xC, 0, this.xC, height); 
+    line(this.xL23, 0, this.xL23, height);
+    line(0, this.yC, width, this.yC);     
+
+    noFill();
+    ellipse(this.xC, this.yC, this.radius1, this.radius1);
+    ellipse(this.xC, this.yC, this.radius2, this.radius2);
+  }
+
+  // simple center MASK
+  drawCircle() {
+    fill(this.bgCol);
+    noStroke();
+    circle(this.xC, this.yC, this.R);
+  }
+
+  drawRect() {
+    fill(this.bgCol);
+    noStroke();
+    rect(this.xC-this.R/2, this.yC-this.R/2, this.R,this.R);
+  }
+
+  drawGrid() {
+     stroke(this.basColdark);
+     strokeWeight(this.strokeW); 
+  
+    for (let x = 0; x <= width; x += this.gridStep) {
+      line(x, 0, x, height);
+    }
+
+    for (let y = 0; y <= height; y += this.gridStep) {
+      line(0, y, width, y);
+    }
+  }
+
+ drawGridPoints() {
+  stroke(this.basCol);
+  strokeWeight(this.strokeW);
+
+  for (let x = 0; x <= this.w ; x += this.gridStep) {
+    for (let y = 0; y <= this.h ; y += this.gridStep) {
+      point(this.x0 + x, this.y0 + y);
+    }
+  }
+}
+}
+
 
 
 
