@@ -2,7 +2,7 @@
 // ver. 0.3 - 2025/09
 
 class DigiFont {
-  constructor(glyphMap) {
+  constructor(glyphMap = DIGI_GLYPHS) {
     this.cols = 5;
     this.rows = 7;
     this.dotScale = 0.9;
@@ -347,6 +347,7 @@ class Terminal {
     this.margin = 10;
     this.fontSize = fontSize;
     this.max_line_chars = max_line_chars;
+    this.lineH = 35;
 
     this.buffer = ["your input", ""];
     this.activeLine = 1;
@@ -354,11 +355,10 @@ class Terminal {
     this.cursorTimer = 0;
     this.cornerRadius = 6;
 
-
-    this.commands = {}; // <- zde budeme ukládat externí příkazy
+    this.commands = {}; // <- here we will store external commands
   }
 
-  // metoda pro registraci externího příkazu
+  // method to register an external command
   registerCommand(name, callback) {
     this.commands[name.toLowerCase()] = callback;
   }
@@ -367,11 +367,11 @@ class Terminal {
     if (key === "Enter") {
       const currentLine = this.buffer[this.activeLine].trim().toLowerCase();
 
-      // nejdříve externí příkazy
+      // first check external commands
       if (this.commands[currentLine]) {
         this.buffer.push(this.commands[currentLine]());
       }
-      // pak vestavěné příkazy
+      // then built-in commands
       else if (currentLine === "time") {
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2,"0") + ":" +
@@ -419,15 +419,15 @@ class Terminal {
   }
 
   draw() {
-    // rámeček
+    // border
     push();
     noFill();
     stroke(0, 255, 0);
     rect(this.x, this.y, this.w, this.h,this.cornerRadius );
     pop();
 
-    // výpočet počtu řádků, které se vejdou
-    const maxLines = Math.floor(this.h / 40);
+    // calculate how many lines fit inside
+    const maxLines = Math.floor(this.h / this.lineH);
 
     this.df.setColor(0, 255, 0).setFontSize(this.fontSize);
 
@@ -437,7 +437,7 @@ class Terminal {
       if (i === this.activeLine) {
         textToDraw += this.showCursor ? "_" : " ";
       }
-      this.df.drawText(textToDraw, this.x + this.margin, this.y + (i - startLine) * 40 + this.margin);
+      this.df.drawText(textToDraw, this.x + this.margin, this.y + (i - startLine) * this.lineH + this.margin);
     }
 
     this.updateCursor();
