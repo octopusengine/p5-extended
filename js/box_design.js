@@ -853,6 +853,7 @@ class Template {
     this.xL23 = width - this.xL13;
     this.xC = width / 2;
     this.yC = height / 2;
+    this.padd = 15;
     this.radius1 = 300;
     this.radius2 = 350;
     this.bgCol = color(0);
@@ -864,6 +865,8 @@ class Template {
     this.y0 = 0;
     this.w = width;
     this.h = height;
+    this.qw = width / 2 - 2 * this.padd;
+    this.qh = height / 2 - 2 * this.padd;
     this.R = width / 3;
 
     // "global" for extern btn
@@ -893,6 +896,38 @@ class Template {
     ellipse(this.xC, this.yC, this.radius1, this.radius1);
     ellipse(this.xC, this.yC, this.radius2, this.radius2);
   }
+
+  drawQ1() {
+    let rx = width / 2 + this.padd;
+    let ry = this.y0 + this.padd;
+    let rectSpec = new RectSpec(rx, ry, this.qw, this.qh, 10, 8);
+    rectSpec.draw();
+  }
+
+
+  drawQ2() {
+    // compute rectangle dimensions for Q1
+    let rx = this.x0 + this.padd;
+    let ry = this.y0 + this.padd;
+    let rectSpec = new RectSpec(rx, ry, this.qw, this.qh, 10, 8);
+    rectSpec.draw();
+  }
+
+
+  drawQ4() {
+    let rx = width / 2 + this.padd;
+    let ry = height / 2 + this.padd;
+    let rectSpec = new RectSpec(rx, ry, this.qw, this.qh, 10, 8);
+    rectSpec.draw();
+  }
+
+  drawQ3() {
+    let rx = this.x0  + this.padd;
+    let ry = height / 2 + this.padd;
+    let rectSpec = new RectSpec(rx, ry, this.qw, this.qw, 10, 8);
+    rectSpec.draw();
+  }  
+ 
 
   // simple center MASK
   drawCircle() {
@@ -931,8 +966,6 @@ class Template {
   }
 }
 }
-
-
 
 
 
