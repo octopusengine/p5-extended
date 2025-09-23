@@ -48,6 +48,68 @@ function drawColorPalette(x, y, a, border = false) {
   pop();
 }
 
+
+// ------------------------------------------------
+class RectSpec {
+  constructor(x, y, w, h, a = 10, r = 8) {
+    this.x = x;
+    this.y = y;
+    this.w = w;  // width
+    this.h = h;  // height
+    this.a = a;  // corner segment length, or 0 = full rectangle
+    this.r = r;  // corner radius (used only if a == 0)
+    this.strokeWeight = 2; // outline thickness
+    //this.col0 = currentColors[0];
+
+  }
+
+  draw() {
+    push();
+
+    let x1 = this.x;
+    let y1 = this.y;
+    let x2 = this.x + this.w;
+    let y2 = this.y + this.h;
+    let a = this.a;
+
+    noStroke();
+    fill(currentColors[0]); // background fill color
+
+    if (a === 0) {
+      stroke(currentColors[3]); // outline3 color
+      strokeWeight(this.strokeWeight);
+ 
+      // Full rectangle mode with rounded corners
+      rect(x1, y1, this.w, this.h, this.r);
+    } else {
+      // Solid filled rectangle without rounded corners
+      rect(x1, y1, this.w, this.h);
+
+      stroke(currentColors[2]); // outline color
+      strokeWeight(this.strokeWeight);
+      noFill();
+
+      // Top edge: left and right corner segments
+      line(x1, y1, x1 + a, y1);
+      line(x2 - a, y1, x2, y1);
+
+      // Bottom edge: left and right corner segments
+      line(x1, y2, x1 + a, y2);
+      line(x2 - a, y2, x2, y2);
+
+      // Left edge: top and bottom corner segments
+      line(x1, y1, x1, y1 + a);
+      line(x1, y2 - a, x1, y2);
+
+      // Right edge: top and bottom corner segments
+      line(x2, y1, x2, y1 + a);
+      line(x2, y2 - a, x2, y2);
+    }
+
+    pop();
+  }
+}
+
 //--------------------------------------------
 class EffectShape {
   constructor(p5Instance) {
