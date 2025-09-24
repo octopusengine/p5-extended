@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<title>Moje vizualizace</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
+<script src="js/box_gui.js"></script>
+<script src="skeleton2501.js"></script>
+</head>
+<body>
+
+<script>
+let baseW = 780;
+let baseH = 450;
+
+// --------- Setup ---------
+function setup() {
+  cnv = createCanvas(baseW, baseH);
+  setup_skeleton();
+
+  /*sph1 = new OscSphere(t0.xC, t0.xC-165, 100);
+  sph1.strokeCol = color(0, 200, 0);
+  sph1.num = 20;
+  sph1.step = 30;
+
+  tc = new TextCircle(t0.xC, t0.yC, 180, " sínus * kosínus * deskriptíva * * * ");
+  tc.fontSize = 20; 
+  tc.col = color(0, 200, 0);
+  tc.startAngle = -90; */ 
+}
+
+// --------- Draw ---------
+function draw() {
+  background(currentColors[0]);
+  
+/*
+  tc.col = currentColors[2];
+  sph1.strokeCol = currentColors[4];
+*/
+
+  t0.drawGridPoints();
+  t0.drawRect();
+
+  allWidgets.forEach(w => { if(w.draw) w.draw(); });
+
+  if (toggPal.checked) { drawColorPalette(t0.xC+200, t0.yC-50, 20, true); }
+
+  toggRun1.draw(); 
+
+  //sph1.display();
+  //if(sph1.running) tc.startAngle = tc.startAngle +0.5;
+  //tc.show();
+}
+
+// --------- Mouse pressed ---------
+function mousePressed() {
+  if (toggRun1.pressed()) { sph1.running = toggRun1.checked; }
+  if (toggFull.pressed()) { fullscreen(!fullscreen()); applyScreenMode(); } 
+
+  let idx = radioCol.pressed();
+  if (idx>=0){ let val = radioCol.getValue(); setColorStyle(val); }
+  if (toggPal.pressed()) { /* :.: */ }
+  if (homeBtn.pressed()) window.location.href = "index.html";
+  if (pinBtn.pressed())  window.location.href = "kbd_pin.html";
+}
+
+</script>
+
+</body>
+</html>

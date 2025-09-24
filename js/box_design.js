@@ -29,7 +29,6 @@ function drawColorPalette(x, y, a, border = false) {
   let totalWidth = n * a + (n - 1) * offset; 
 
   push();
-
   // border
   if (border) {
     stroke(currentColors[2]);
@@ -44,7 +43,6 @@ function drawColorPalette(x, y, a, border = false) {
     fill(currentColors[i]);
     rect(x + offset + i * (a + offset), y + offset, a, a);
   }
-
   pop();
 }
 
@@ -60,12 +58,10 @@ class RectSpec {
     this.r = r;  // corner radius (used only if a == 0)
     this.strokeWeight = 2; // outline thickness
     //this.col0 = currentColors[0];
-
   }
 
   draw() {
     push();
-
     let x1 = this.x;
     let y1 = this.y;
     let x2 = this.x + this.w;
@@ -73,7 +69,7 @@ class RectSpec {
     let a = this.a;
 
     noStroke();
-    fill(currentColors[0]); // background fill color
+    fill(currentColors[1]); // 0/ background fill color
 
     if (a === 0) {
       stroke(currentColors[3]); // outline3 color
@@ -85,7 +81,7 @@ class RectSpec {
       // Solid filled rectangle without rounded corners
       rect(x1, y1, this.w, this.h);
 
-      stroke(currentColors[2]); // outline color
+      stroke(currentColors[3]); // outline color
       strokeWeight(this.strokeWeight);
       noFill();
 
@@ -109,6 +105,45 @@ class RectSpec {
     pop();
   }
 }
+
+
+//--------------------------------------------
+class SimpleLabel {
+  constructor(x, y, labelText=":.:") {
+    this.x = x;
+    this.y = y;
+    this.x0 = 10;
+    this.y0 = 10;
+
+    this.labelText = labelText;
+    this.w = 150;
+    this.h = 39;
+    this.size = 18;
+ 
+    // create RectSpec for label background
+    this.rect = new RectSpec(this.x, this.y, this.w, this.h, 10, 6);
+  }
+
+  draw(newText = null) {
+    // update text if provided
+    if (newText !== null) { this.labelText = newText; }
+
+    // draw background rectangle
+    this.rect.draw();
+
+    // draw text
+    push();
+    fill(currentColors[2]);
+    noStroke();
+    textFont('courier');      // use Courier font
+    textSize(this.size);             // adjust font size as needed
+    textAlign(LEFT, TOP);
+    textStyle(BOLD); 
+    text(this.labelText, this.x + this.x0 , this.y + this.y0 ); 
+    pop();
+  }
+}
+
 
 //--------------------------------------------
 class EffectShape {
@@ -261,6 +296,7 @@ class ShadowElement {
 }
 
 
+//--------------------------------------------
 class GlowElement {
   constructor(x, y, w, h, glowColor, blur = 30) {
     this.x = x;
@@ -362,7 +398,7 @@ class DesignArc {
   // reset
   ctx.shadowBlur = 0;
   ctx.shadowColor = "rgba(0,0,0,0)";
-}
+  }
 }
 
 

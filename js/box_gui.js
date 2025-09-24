@@ -2,6 +2,7 @@
 // v0.3 | 2025/09
 
 
+//================================
 class ProgressBar {
   constructor(x, y, w, h, minVal = 0, maxVal = 100) {
     this.x = x;
@@ -71,7 +72,7 @@ class ProgressBar {
 }
 
 
-
+//================================
 class ButtonBox {
   constructor(x, y, w, h, label) {
     this.x = x;
@@ -130,6 +131,8 @@ class ButtonBox {
     fill(this.textColor);
     textSize(this.textSize);
     textAlign(CENTER, CENTER);
+    //textAlign(LEFT, TOP);
+    textStyle(BOLD); 
     text(this.label, this.x + this.w / 2, this.y + this.h / 2);
 
     pop();
@@ -137,7 +140,7 @@ class ButtonBox {
 }
 
 
-
+//================================
 class CheckBox {
     constructor(x, y, size, initialState = false) {
         this.x = x;
@@ -243,6 +246,7 @@ class CheckBox {
             noStroke();
             textSize(this.labelSize);
             textAlign(LEFT, BASELINE);
+            textStyle(BOLD);
             text(this.label, this.x + this.labelOffsetX, this.y + this.labelOffsetY);
         }
 
@@ -256,7 +260,7 @@ class RadioButton {
     constructor(x, y, size, label, selected=false, value=null) {
         this.x = x; this.y = y; this.size = size;
         this.label = label ?? "";
-        this.value = value ?? label; // pokud není value, použijeme label
+        this.value = value ?? label; // value or label
         this.selected = selected;
 
         // vizuální parametry
@@ -266,8 +270,8 @@ class RadioButton {
 
         this.labelColor = color(0, 200, 0);
         this.labelSize = 16;
-        this.labelOffsetX = this.size + 10;
-        this.labelOffsetY = this.labelSize / 3;
+        this.labelOffsetX = this.size + 5;
+        this.labelOffsetY = this.labelSize / 3 - 3;
     }
 
     changeColorStyle() {
@@ -287,7 +291,7 @@ class RadioButton {
         if (this.selected) {
             noStroke();
             fill(this.activeColor);
-            ellipse(this.x, this.y, this.size / 2); // vnitřní kolečko
+            ellipse(this.x, this.y, this.size / 2); // inner
         }
 
         // Label
@@ -296,6 +300,7 @@ class RadioButton {
             fill(this.labelColor);
             textSize(this.labelSize);
             textAlign(LEFT, CENTER);
+            textStyle(BOLD);
             text(this.label, this.x + this.labelOffsetX, this.y + this.labelOffsetY);
         }
         pop();
@@ -357,7 +362,6 @@ class RadioGroup {
         this.buttons.forEach(b => b.changeColorStyle());
     }
 }
-
 
 
 //==================================
@@ -458,7 +462,6 @@ class BoxSlider {
   }
 }
 
-
   pressed() {
     if (this.isPointerOver()) {
       this.dragging = true;
@@ -527,5 +530,3 @@ class BoxSlider {
     pop();
   }
 }
-
-
