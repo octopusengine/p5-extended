@@ -9,7 +9,7 @@ const colorsDarkGreenMode =   ["#000", "#030", "#0e0", "#090", "#5f0", "#0f5", "
 
 const colorsLightBlaWhiMode = ["#ccc", "#eee", "#000", "#333", "#f00", "#00f", "#FFF"];
 
-const colorsColorMode =       ["#00a", "#330", "#99", "#09a", "#5f0", "#0f5", "#FFF"];
+const colorsColorMode =       ["#00a", "#330", "#99", "#09a", "#F605FA", "#0f5", "#FFF"];
 
 
 // global var
@@ -818,6 +818,9 @@ class JacobLadder {
     this.end = this.baseY - size * 0.8;  // ladder height
     this.rise = 1;                       // speed of spark rising
     this.locate = random(this.end, this.start);
+    this.col = (0,190,0); 
+    this.colMax = (0,255,0);
+
   }
 
   update() {
@@ -864,12 +867,12 @@ class JacobLadder {
     this.yoff += 0.075;
 
     let thick = map(this.locate, this.start, this.end, 8, 1); // thickness in pixels
-    stroke(0, 250, 0, 255);
+    stroke(this.col); //0, 250, 0, 255
     strokeWeight(thick);
 
     // occasional bright flash
     if (random() < 0.2) {
-      stroke(255, 255);
+      stroke(this.colMax);
       strokeWeight(thick * 0.5);
     }
 
