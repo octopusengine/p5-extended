@@ -2,15 +2,11 @@
 // ver. 0.5 - 2025/09
 
 
-// color style/mode
-// c[0]=bg1, bg2, base1, base2, spec1, spec2
+// color style/mode // c[0]=bg1, bg2, base1, base2, spec1, spec2
 
-const colorsDarkGreenMode =   ["#000", "#030", "#0e0", "#090", "#5f0", "#0f5", "#FFF"];
-
-const colorsLightBlaWhiMode = ["#ccc", "#eee", "#000", "#333", "#f00", "#00f", "#FFF"];
-
-const colorsColorMode =       ["#00a", "#330", "#99", "#09a", "#F605FA", "#0f5", "#FFF"];
-
+const colorsDarkGreenMode = ["#000","#030","#0e0","#090","#5f0","#0f5","#FFF","green","orange"];
+const colorsLightBlaWhiMode = ["#ccc","#eee","#000","#333","#f00","#00f","#FFF","silver","gray"];
+const colorsColorMode = ["#00a","navy","#99","orange","#F605FA","#0f5","#FFF","red","yellow"];
 
 // global var
 let currentColors = colorsDarkGreenMode;
@@ -23,13 +19,13 @@ function setColorStyle(cs) {
 }
 
 
+//=====================================================
 function drawColorPalette(x, y, a, border = false) {
   let offset = 5;
   let n = currentColors.length;
   let totalWidth = n * a + (n - 1) * offset; 
 
   push();
-  // border
   if (border) {
     stroke(currentColors[2]);
     strokeWeight(1);
