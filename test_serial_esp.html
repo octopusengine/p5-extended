@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>ESP32 Serial Test</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
+<script src="js/box_gui.js"></script>
+<script src="js/serial_comm.js"></script>
+</head>
+<body>
+<script>
+let lastValues = {val1: "-", val2: "-", val3: "-"}; // store incoming JSON
+let t0;
+let connBtn, led1Btn, led0Btn, led2Btn, led20Btn, toggLed1, toggLed2;
+
+function setup() {
+  createCanvas(800, 600);
+  t0 = new Template();
+
+  // Buttons
+  connBtn = new ButtonBox(t0.btnX0, 30, t0.btnW, t0.btnH, "CONNECT");
+  led1Btn = new ButtonBox(t0.btnX0, 100, t0.btnW, t0.btnH, "LED 1 ON");
+  led0Btn = new ButtonBox(t0.btnX0, 150, t0.btnW, t0.btnH, "LED 1 OFF");
+  led2Btn = new ButtonBox(t0.btnX0, 200, t0.btnW, t0.btnH, "LED 2 ON");
+  led20Btn = new ButtonBox(t0.btnX0, 250, t0.btnW, t0.btnH, "LED 2 OFF");
+
+  // LED toggle checkboxes
+  toggLed1 = new CheckBox(t0.xC + 200, t0.yC - 250, t0.btnH, false);
+  toggLed1.textLabel("LED 1");
+  toggLed2 = new CheckBox(t0.xC + 200, t0.yC - 200, t0.btnH, false);
+  toggLed2.textLabel("LED 2");
+
+  // Serial callbacks
+  setSerialCallbacks({
+    onConnect: () => console.log("Connected!"),
+    onDisconnect: () => {
+      console.log("Disconnected!");
+      lastValues = {val1: "-", val2: "-", val3: "-"};
+      toggLed1.checked = false;
+      toggLed2.checked = false;
+    },
+    onData: (line) => {
+      try {
+        let json = JSON.parse(line);
+        lastValues.val1 = json.val1;
+        lastValues.val2 = json.val2;
+        lastValues.val3 = json.val3;
+      } catch(e) {
+        console.log("RX:", line); // fallback for non-JSON
+      }
+    },
+    onError: (err) => console.error("Serial error:", err)
+  });
+}
+
+function draw() {
+  background(30);
+  t0.draw();
+
+  // Draw buttons
+  connBtn.draw();
+  led1Btn.draw();
+  led0Btn.draw();
+  led2Btn.draw();
+  led20Btn.draw();
+  toggLed1.draw();
+  toggLed2.draw();
+
+  // Status circle next to CONNECT button
+  let cx = connBtn.x - 15;
+  let cy = connBtn.y + connBtn.h / 2;
+  noStroke();
+  fill(window.isConnected ? color(0, 250, 0) : color(128, 128, 128));
+  ellipse(cx, cy, 12, 12);
+
+  drawValuesBox();
+}
+
+function mousePressed() {
+  // Connect/disconnect
+  if (connBtn.pressed(mouseX, mouseY)) {
+    toggleConnection();
+  }
+
+  if (!window.isConnected) return;
+
+  // LED buttons
+  if (led1Btn.pressed(mouseX, mouseY)) {
+    sendToSerial("led11\n");
+    toggLed1.checked = true;
+  }
+  if (led0Btn.pressed(mouseX, mouseY)) {
+    sendToSerial("led10\n");
+    toggLed1.checked = false;
+  }
+  if (led2Btn.pressed(mouseX, mouseY)) {
+    sendToSerial("led21\n");
+    toggLed2.checked = true;
+  }
+  if (led20Btn.pressed(mouseX, mouseY)) {
+    sendToSerial("led20\n");
+    toggLed2.checked = false;
+  }
+
+  // LED checkboxes
+  if (toggLed1.pressed()) {
+    if (toggLed1.checked) sendToSerial("led11\n");
+    else sendToSerial("led10\n");
+  }
+  if (toggLed2.pressed()) {
+    if (toggLed2.checked) sendToSerial("led21\n");
+    else sendToSerial("led20\n");
+  }
+}
+
+async function toggleConnection() {
+  try {
+    if (!window.isConnected) {
+      await connectToSerial();
+      connBtn.label = "DISCONNECT";
+    } else {
+      await disconnectFromSerial();
+      connBtn.label = "CONNECT";
+    }
+  } catch (err) {
+    console.error("Toggle error:", err);
+  }
+}
+
+function drawValuesBox() {
+  fill(32);
+  stroke(window.isConnected ? color(76, 175, 80) : color(200));
+  strokeWeight(4);
+  rect(width / 2 - 200, 50, 350, 150, 10);
+
+  fill(128);
+  noStroke();
+  textSize(18);
+  textFont("monospace");
+  textAlign(CENTER, TOP);
+  text("Values from ESP32:", width/2, 60);
+
+  fill(window.isConnected ? color(76, 175, 80) : color(150));
+  textSize(18);
+  textAlign(CENTER, TOP);
+  text("val1: " + lastValues.val1, width/2, 100);
+  text("val2: " + lastValues.val2, width/2, 130);
+  text("val3: " + lastValues.val3, width/2, 160);
+}
+</script>
+</body>
+</html>

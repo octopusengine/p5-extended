@@ -1,68 +1,49 @@
-// serial_connection - testing with ESP32 Micropython
-// ver. 0.1 | 2025/08
-
-document.addEventListener("DOMContentLoaded", () => {
-  const wrapper = document.createElement("div");
-  wrapper.className = "serial-wrapper";
-  wrapper.innerHTML = `
-    <div class="controls">
-      <div id="statusIndicator" class="status-indicator"></div>
-      
-      <label>
-        <input type="radio" name="baud" value="9600" checked> 9600
-      </label>
-      <label>
-        <input type="radio" name="baud" value="115200"> 115200
-      </label>
-
-      <button id="connectBtn">Connect</button>
-      <button id="disconnectBtn">Disconnect</button>
-    </div>
-
-    <div id="status">Disconnected</div>
-  `;
-  document.body.prepend(wrapper);
-});
+// serial_comm.js - pure module for Web Serial API without GUI
+// ver. 0.2 | 2025/09
 
 let port = null;
 let reader = null;
-let isConnected = false;
+window.isConnected = false;
 let baudRate = 9600;
 
-async function connectToSerial() {
+// Default callbacks (can be overridden)
+let callbacks = {
+  onConnect: () => {},
+  onDisconnect: () => {},
+  onData: (line) => {},
+  onError: (err) => {}
+};
+
+window.setSerialCallbacks = function (cb) {
+  callbacks = { ...callbacks, ...cb };
+};
+
+window.connectToSerial = async function (baud = 9600) {
   try {
     if (!navigator.serial) {
-      alert('Web Serial API is not supported. Please use Chrome or Edge.');
-      return;
+      throw new Error("Web Serial API is not supported. Please use Chrome or Edge.");
     }
 
-    // Get selected baudrate from radio buttons
-    const selected = document.querySelector('input[name="baud"]:checked');
-    baudRate = parseInt(selected.value);
+    baudRate = baud;
 
     port = await navigator.serial.requestPort();
     await port.open({
       baudRate: baudRate,
       dataBits: 8,
       stopBits: 1,
-      parity: 'none'
+      parity: "none",
     });
 
-    isConnected = true;
-    updateStatusDisplay();
-
-    lastValue = "Connected...";
-    valueHistory = [];
-
+    window.isConnected = true;
+    callbacks.onConnect();
     readSerialData();
 
   } catch (error) {
-    console.error('Connection error:', error);
-    alert('Failed to connect: ' + error.message);
+    callbacks.onError(error);
   }
-}
+};
 
-async function disconnectFromSerial() {
+window.disconnectFromSerial = async function () {
   try {
     if (reader) {
       await reader.cancel();
@@ -73,20 +54,19 @@ async function disconnectFromSerial() {
       port = null;
     }
 
-    isConnected = false;
-    updateStatusDisplay();
-    lastValue = "Disconnected";
+    window.isConnected = false;
+    callbacks.onDisconnect();
 
   } catch (error) {
-    console.error('Disconnection error:', error);
+    callbacks.onError(error);
   }
-}
+};
 
 async function readSerialData() {
   try {
     const decoder = new TextDecoder();
     reader = port.readable.getReader();
-    let buffer = '';
+    let buffer = "";
 
     while (true) {
       const { value, done } = await reader.read();
@@ -95,19 +75,18 @@ async function readSerialData() {
       const text = decoder.decode(value);
       buffer += text;
 
-      let lines = buffer.split('\n');
+      let lines = buffer.split("\n");
       buffer = lines.pop();
 
       for (let line of lines) {
         if (line.trim()) {
-          processNewValue(line.trim());
+          callbacks.onData(line.trim());
         }
       }
     }
   } catch (error) {
-    if (error.name !== 'AbortError') {
-      console.error('Read error:', error);
-      lastValue = "Read error";
+    if (error.name !== "AbortError") {
+      callbacks.onError(error);
     }
   } finally {
     if (reader) {
@@ -117,8 +96,8 @@ async function readSerialData() {
   }
 }
 
-async function sendToSerial(data) {
-  if (!isConnected || !port) {
+window.sendToSerial = async function (data) {
+  if (!window.isConnected || !port) {
     console.warn("Not connected, cannot send data:", data);
     return;
   }
@@ -128,25 +107,12 @@ async function sendToSerial(data) {
     await writer.write(encoder.encode(data));
     writer.releaseLock();
   } catch (error) {
-    console.error("Send error:", error);
+    callbacks.onError(error);
   }
-}
+};
 
-function updateStatusDisplay() {
-  const statusDiv = document.getElementById('status');
-  const indicator = document.getElementById('statusIndicator');
-  if (isConnected) {
-    statusDiv.textContent = 'Connected';
-    indicator.classList.add('connected');
-  } else {
-    statusDiv.textContent = 'Disconnected';
-    indicator.classList.remove('connected');
-  }
-}
-
-// Disconnect before closing the window
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   if (port) {
-    disconnectFromSerial();
+    window.disconnectFromSerial();
   }
 });
