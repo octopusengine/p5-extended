@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Test Gradient</title>
+<link rel="stylesheet" type="text/css" href="dark.css">
+<script src="js/p5.min.js"></script>
+<script src="js/box_design.js"></script>
+</head>
+<body>
+
+<script>
+let tc, tc2;
+
+function setup() {
+  createCanvas(600, 400);
+  t0 = new Template();
+  //angleMode(DEGREES);
+
+  tc = new TextCircle(width/2, height/2, 120, "*** test *  font 16 * start -90  *     ");
+  tc.fontSize = 16;          
+  tc.col = color(0, 200, 0);
+  tc.startAngle = -90;       
+
+  tc2 = new TextCircle(width/2, height/2, 150, "*** font 32 * radius 250 *  start 0 * ");
+  tc2.fontSize = 32;          
+  tc2.col = color(0, 250, 0);
+  tc2.startAngle = 0;      
+
+}
+
+function draw() {
+  background(30);
+  t0.draw();
+  //noFill();
+  //stroke(0,150,255);
+  //circle(width/2, height/2, 240); // pomocná kružnice
+  tc.draw();
+  tc2.draw();
+
+}
+</script>
+
+</body>
+</html>

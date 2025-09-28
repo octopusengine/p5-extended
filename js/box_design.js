@@ -414,7 +414,7 @@ class TextCircle {
     this.distanceAngle = 360;    // kolik stupňů pokryje text
   }
 
-  show() {
+  draw() {
     textFont(this.fontName);
     textSize(this.fontSize);
     textAlign(CENTER, BASELINE);
